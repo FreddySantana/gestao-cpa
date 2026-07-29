@@ -1,0 +1,9 @@
+# Dependências
+node_modules/
+
+# Dados locais da versão Express/SQLite (não vão para o git)
+data/
+uploads/
+
+# Sistema
+.DS_Store

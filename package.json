@@ -1,0 +1,16 @@
+{
+  "name": "gestao-cpa",
+  "version": "1.0.0",
+  "description": "Portal da CPA (Comissão Própria de Avaliação) da Estácio: notícias, divulgações, repositório de documentos e transparência da autoavaliação institucional",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "multer": "^2.2.0"
+  }
+}

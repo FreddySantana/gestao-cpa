@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentos · Portal CPA</title>
+  <link rel="stylesheet" href="/css/portal.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="container topo-inner">
+      <a class="marca" href="/">
+        <span class="logo">CPA</span>
+        <span data-config="subtitulo">Comissão Própria de Avaliação<small>Estácio</small></span>
+      </a>
+      <nav class="menu">
+        <a href="/">Início</a>
+        <a href="/noticias.html">Notícias</a>
+        <a href="/documentos.html" class="ativo">Documentos</a>
+        <a href="/quem-somos.html">Quem Somos</a>
+        <a id="menu-pesquisa" class="btn-pesquisa" href="#" target="_blank" rel="noopener" style="display:none">Responder Pesquisa</a>
+      </nav>
+      <div class="menu-mobile">
+        <select onchange="if(this.value)location.href=this.value">
+          <option value="">Menu</option>
+          <option value="/">Início</option>
+          <option value="/noticias.html">Notícias</option>
+          <option value="/documentos.html">Documentos</option>
+          <option value="/quem-somos.html">Quem Somos</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <section class="secao container">
+    <div class="secao-cabeca"><h2>Repositório de documentos</h2></div>
+    <p style="color:var(--cinza);margin-bottom:20px">
+      Relatórios de autoavaliação, atas, regulamentos, resultados de pesquisas e outros documentos oficiais da CPA.
+    </p>
+    <div class="filtros">
+      <input type="search" id="busca" placeholder="Buscar documento…">
+      <select id="filtro-pasta"><option value="">Todas as pastas</option></select>
+      <select id="filtro-ano"><option value="">Todos os anos</option></select>
+    </div>
+    <div id="lista"></div>
+    <p class="vazio" id="vazio" style="display:none">Nenhum documento encontrado.</p>
+  </section>
+
+  <footer class="rodape">
+    <div class="container">
+      <span data-config="nome_portal">Portal CPA · Estácio</span>
+      <a href="/quem-somos.html">Quem Somos</a>
+      <a href="/documentos.html">Documentos</a>
+      <a class="admin-link" href="/admin.html">Área administrativa</a>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { aplicaConfig, itemDocumento, esc } from '/js/comum.js';
+
+    fetch('/api/publico/home').then((r) => r.json()).then((h) => aplicaConfig(h.config));
+
+    const selPasta = document.getElementById('filtro-pasta');
+    const selAno = document.getElementById('filtro-ano');
+    let filtrosProntos = false;
+
+    async function carrega() {
+      const q = new URLSearchParams({
+        busca: document.getElementById('busca').value.trim(),
+        pasta: selPasta.value,
+        ano: selAno.value,
+      });
+      const { documentos, pastas, anos } = await (await fetch(`/api/publico/documentos?${q}`)).json();
+
+      if (!filtrosProntos) {
+        selPasta.innerHTML += pastas.map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+        selAno.innerHTML += anos.map((a) => `<option value="${a}">${a}</option>`).join('');
+        filtrosProntos = true;
+      }
+
+      // Agrupa por pasta para leitura mais fácil.
+      const grupos = {};
+      for (const d of documentos) (grupos[d.pasta] ??= []).push(d);
+      document.getElementById('lista').innerHTML = Object.entries(grupos)
+        .map(
+          ([pasta, docs]) => `
+          <h3 style="margin:24px 0 10px;font-size:16px;color:var(--azul-escuro)">📁 ${esc(pasta)}</h3>
+          <div class="lista-docs">${docs.map(itemDocumento).join('')}</div>`
+        )
+        .join('');
+      document.getElementById('vazio').style.display = documentos.length ? 'none' : '';
+    }
+
+    let timer;
+    document.getElementById('busca').addEventListener('input', () => {
+      clearTimeout(timer);
+      timer = setTimeout(carrega, 300);
+    });
+    selPasta.addEventListener('change', carrega);
+    selAno.addEventListener('change', carrega);
+    carrega();
+  </script>
+</body>
+</html>

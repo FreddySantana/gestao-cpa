@@ -1,0 +1,11 @@
+[build]
+  publish = "web"
+
+# Páginas do portal são estáticas; sem etapa de build.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
