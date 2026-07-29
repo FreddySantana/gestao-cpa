@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quem Somos · Portal CPA</title>
+  <link rel="stylesheet" href="/css/portal.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="container topo-inner">
+      <a class="marca" href="/">
+        <span class="logo">CPA</span>
+        <span data-config="subtitulo">Comissão Própria de Avaliação<small>Estácio</small></span>
+      </a>
+      <nav class="menu">
+        <a href="/">Início</a>
+        <a href="/noticias.html">Notícias</a>
+        <a href="/documentos.html">Documentos</a>
+        <a href="/quem-somos.html" class="ativo">Quem Somos</a>
+        <a id="menu-pesquisa" class="btn-pesquisa" href="#" target="_blank" rel="noopener" style="display:none">Responder Pesquisa</a>
+      </nav>
+      <div class="menu-mobile">
+        <select onchange="if(this.value)location.href=this.value">
+          <option value="">Menu</option>
+          <option value="/">Início</option>
+          <option value="/noticias.html">Notícias</option>
+          <option value="/documentos.html">Documentos</option>
+          <option value="/quem-somos.html">Quem Somos</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <section class="secao container">
+    <div class="secao-cabeca"><h2>Quem somos</h2></div>
+    <article class="artigo" style="margin-top:0">
+      <div class="conteudo"><p id="texto-sobre"></p></div>
+      <p id="contato" style="color:var(--cinza);font-size:14.5px;margin-top:8px"></p>
+    </article>
+  </section>
+
+  <section class="secao container">
+    <div class="secao-cabeca"><h2>Membros da comissão</h2></div>
+    <div class="membros" id="membros"></div>
+    <p class="vazio" id="vazio" style="display:none">A composição da comissão será divulgada em breve.</p>
+  </section>
+
+  <footer class="rodape">
+    <div class="container">
+      <span data-config="nome_portal">Portal CPA · Estácio</span>
+      <a href="/quem-somos.html">Quem Somos</a>
+      <a href="/documentos.html">Documentos</a>
+      <a class="admin-link" href="/admin.html">Área administrativa</a>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { sb, urlArquivo, pegaConfig } from '/js/db.js';
+    import { aplicaConfig, esc } from '/js/comum.js';
+
+    const [config, membrosRes] = await Promise.all([
+      pegaConfig(),
+      sb.from('membros').select('nome,funcao,segmento,email,bio,foto,ordem').eq('ativo', true).order('ordem').order('nome'),
+    ]);
+    const membros = membrosRes.data ?? [];
+
+    aplicaConfig(config);
+    document.getElementById('texto-sobre').textContent = config.texto_sobre || '';
+    if (config.email_contato) {
+      document.getElementById('contato').innerHTML =
+        `Contato: <a href="mailto:${esc(config.email_contato)}">${esc(config.email_contato)}</a>`;
+    }
+
+    const iniciais = (nome) =>
+      nome.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join('');
+
+    if (membros.length) {
+      document.getElementById('membros').innerHTML = membros
+        .map(
+          (m) => `
+          <div class="membro">
+            <div class="avatar">${m.foto ? `<img src="${esc(urlArquivo(m.foto))}" alt="Foto de ${esc(m.nome)}">` : esc(iniciais(m.nome))}</div>
+            <strong>${esc(m.nome)}</strong>
+            <span class="funcao">${esc(m.funcao)}</span><br>
+            <span class="segmento">${esc(m.segmento)}</span>
+            ${m.bio ? `<p class="bio">${esc(m.bio)}</p>` : ''}
+            ${m.email ? `<div class="contato"><a href="mailto:${esc(m.email)}">${esc(m.email)}</a></div>` : ''}
+          </div>`
+        )
+        .join('');
+    } else {
+      document.getElementById('vazio').style.display = '';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notícias · Portal CPA</title>
+  <link rel="stylesheet" href="/css/portal.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="container topo-inner">
+      <a class="marca" href="/">
+        <span class="logo">CPA</span>
+        <span data-config="subtitulo">Comissão Própria de Avaliação<small>Estácio</small></span>
+      </a>
+      <nav class="menu">
+        <a href="/">Início</a>
+        <a href="/noticias.html" class="ativo">Notícias</a>
+        <a href="/documentos.html">Documentos</a>
+        <a href="/quem-somos.html">Quem Somos</a>
+        <a id="menu-pesquisa" class="btn-pesquisa" href="#" target="_blank" rel="noopener" style="display:none">Responder Pesquisa</a>
+      </nav>
+      <div class="menu-mobile">
+        <select onchange="if(this.value)location.href=this.value">
+          <option value="">Menu</option>
+          <option value="/">Início</option>
+          <option value="/noticias.html">Notícias</option>
+          <option value="/documentos.html">Documentos</option>
+          <option value="/quem-somos.html">Quem Somos</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <section class="secao container">
+    <div class="secao-cabeca"><h2>Notícias e divulgações</h2></div>
+    <div class="filtros">
+      <input type="search" id="busca" placeholder="Buscar por título ou conteúdo…">
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="grade" id="lista"></div>
+    <p class="vazio" id="vazio" style="display:none">Nenhuma publicação encontrada.</p>
+    <div class="paginacao" id="paginacao"></div>
+  </section>
+
+  <footer class="rodape">
+    <div class="container">
+      <span data-config="nome_portal">Portal CPA · Estácio</span>
+      <a href="/quem-somos.html">Quem Somos</a>
+      <a href="/documentos.html">Documentos</a>
+      <a class="admin-link" href="/admin.html">Área administrativa</a>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { sb, SEL_PUB, normalizaPublicacao, pegaConfig, categoriasComTotal } from '/js/db.js';
+    import { aplicaConfig, cardPublicacao, esc } from '/js/comum.js';
+
+    const params = new URLSearchParams(location.search);
+    let categoria = params.get('categoria') || '';
+    let busca = '';
+    let pagina = 1;
+    const porPagina = 12;
+
+    const [config, categorias] = await Promise.all([pegaConfig(), categoriasComTotal()]);
+    aplicaConfig(config);
+
+    function renderChips() {
+      const chips = [`<button class="chip${!categoria ? ' ativo' : ''}" data-cat="">Todas</button>`].concat(
+        categorias
+          .filter((c) => c.total > 0)
+          .map((c) => `<button class="chip${String(c.id) === String(categoria) ? ' ativo' : ''}" data-cat="${c.id}">${esc(c.nome)}</button>`)
+      );
+      document.getElementById('chips').innerHTML = chips.join('');
+      document.querySelectorAll('#chips .chip').forEach((b) =>
+        b.addEventListener('click', () => {
+          categoria = b.dataset.cat;
+          pagina = 1;
+          carrega();
+          renderChips();
+        })
+      );
+    }
+
+    async function carrega() {
+      let q = sb.from('publicacoes').select(SEL_PUB, { count: 'exact' }).eq('publicado', true);
+      if (categoria) q = q.eq('categoria_id', Number(categoria));
+      if (busca) {
+        // Vírgulas e parênteses têm significado no filtro "or" do PostgREST.
+        const b = busca.replace(/[,()]/g, ' ').trim();
+        if (b) q = q.or(`titulo.ilike.%${b}%,resumo.ilike.%${b}%,conteudo.ilike.%${b}%`);
+      }
+      const de = (pagina - 1) * porPagina;
+      const { data, count } = await q.order('publicado_em', { ascending: false }).range(de, de + porPagina - 1);
+      const publicacoes = (data ?? []).map(normalizaPublicacao);
+
+      document.getElementById('lista').innerHTML = publicacoes.map((p) => cardPublicacao(p)).join('');
+      document.getElementById('vazio').style.display = publicacoes.length ? 'none' : '';
+      const totalPaginas = Math.ceil((count ?? 0) / porPagina);
+      const pag = document.getElementById('paginacao');
+      if (totalPaginas <= 1) {
+        pag.innerHTML = '';
+      } else {
+        pag.innerHTML = Array.from({ length: totalPaginas }, (_, i) =>
+          `<button class="${i + 1 === pagina ? 'ativo' : ''}" data-p="${i + 1}">${i + 1}</button>`
+        ).join('');
+        pag.querySelectorAll('button').forEach((b) =>
+          b.addEventListener('click', () => {
+            pagina = Number(b.dataset.p);
+            carrega();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          })
+        );
+      }
+    }
+
+    let timer;
+    document.getElementById('busca').addEventListener('input', (e) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        busca = e.target.value.trim();
+        pagina = 1;
+        carrega();
+      }, 300);
+    });
+
+    renderChips();
+    carrega();
+  </script>
+</body>
+</html>

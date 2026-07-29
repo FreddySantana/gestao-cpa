@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal CPA · Estácio</title>
+  <link rel="stylesheet" href="/css/portal.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="container topo-inner">
+      <a class="marca" href="/">
+        <span class="logo">CPA</span>
+        <span data-config="subtitulo">Comissão Própria de Avaliação<small>Estácio</small></span>
+      </a>
+      <nav class="menu">
+        <a href="/" class="ativo">Início</a>
+        <a href="/noticias.html">Notícias</a>
+        <a href="/documentos.html">Documentos</a>
+        <a href="/quem-somos.html">Quem Somos</a>
+        <a id="menu-pesquisa" class="btn-pesquisa" href="#" target="_blank" rel="noopener" style="display:none">Responder Pesquisa</a>
+      </nav>
+      <div class="menu-mobile">
+        <select onchange="if(this.value)location.href=this.value">
+          <option value="">Menu</option>
+          <option value="/">Início</option>
+          <option value="/noticias.html">Notícias</option>
+          <option value="/documentos.html">Documentos</option>
+          <option value="/quem-somos.html">Quem Somos</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <section class="slider" id="slider" style="display:none" aria-label="Notícias em destaque">
+    <div class="slides" id="slides"></div>
+    <button class="slide-seta prev" id="slide-prev" aria-label="Notícia anterior">‹</button>
+    <button class="slide-seta next" id="slide-next" aria-label="Próxima notícia">›</button>
+    <div class="slide-pontos" id="slide-pontos"></div>
+  </section>
+
+  <section class="hero" id="hero">
+    <div class="container">
+      <h1>Avaliação institucional feita com transparência e participação</h1>
+      <p data-config="texto_sobre"></p>
+      <div class="acoes">
+        <a class="principal" href="/noticias.html">Ver notícias e divulgações</a>
+        <a class="secundaria" href="/documentos.html">Repositório de documentos</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div id="banner-pesquisa" class="banner-pesquisa" style="display:none">
+      <div>
+        <strong>Pesquisa de Avaliação Institucional</strong>
+        <p>Sua opinião orienta as melhorias da instituição. Participe!</p>
+      </div>
+      <a href="#" target="_blank" rel="noopener">Responder agora</a>
+    </div>
+  </div>
+
+  <section class="secao container">
+    <div class="secao-cabeca">
+      <h2>Últimas publicações</h2>
+      <a href="/noticias.html">Ver todas →</a>
+    </div>
+    <div class="chips" id="chips-categorias"></div>
+    <div class="grade" id="recentes"></div>
+    <p class="vazio" id="vazio-recentes" style="display:none">Nenhuma publicação ainda. Em breve, novidades da CPA por aqui!</p>
+  </section>
+
+  <section class="secao container">
+    <div class="secao-cabeca">
+      <h2>Documentos recentes</h2>
+      <a href="/documentos.html">Ver repositório completo →</a>
+    </div>
+    <div class="lista-docs" id="docs-recentes"></div>
+    <p class="vazio" id="vazio-docs" style="display:none">Nenhum documento publicado ainda.</p>
+  </section>
+
+  <footer class="rodape">
+    <div class="container">
+      <span data-config="nome_portal">Portal CPA · Estácio</span>
+      <a href="/quem-somos.html">Quem Somos</a>
+      <a href="/documentos.html">Documentos</a>
+      <a class="admin-link" href="/admin.html">Área administrativa</a>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { sb, SEL_PUB, normalizaPublicacao, urlArquivo, pegaConfig, categoriasComTotal, ativaContadorDownloads } from '/js/db.js';
+    import { aplicaConfig, cardPublicacao, itemDocumento, esc, fmtData } from '/js/comum.js';
+
+    function montaSlider(slides) {
+      const slider = document.getElementById('slider');
+      const caixa = document.getElementById('slides');
+      const pontos = document.getElementById('slide-pontos');
+      slider.style.display = '';
+      // O banner da pesquisa "invade" o hero de propósito; com o slider, fica abaixo dele.
+      document.getElementById('banner-pesquisa').style.marginTop = '24px';
+
+      caixa.innerHTML = slides
+        .map((p, i) => {
+          const capa = p.capa ? ` style="background-image:url('${esc(urlArquivo(p.capa))}')"` : '';
+          const cat = p.categoria_nome
+            ? `<span class="etiqueta" style="background:${esc(p.categoria_cor || '#1d4ed8')}">${esc(p.categoria_nome)}</span><br>`
+            : '';
+          return `
+            <a class="slide${p.capa ? '' : ' sem-capa'}${i === 0 ? ' ativo' : ''}"${capa} href="/publicacao.html?id=${p.id}">
+              <div class="slide-conteudo">
+                ${cat}
+                <h2>${esc(p.titulo)}</h2>
+                <p class="slide-resumo">${esc(p.resumo)}</p>
+                <div class="slide-meta">${fmtData(p.publicado_em)}</div>
+              </div>
+            </a>`;
+        })
+        .join('');
+      pontos.innerHTML = slides
+        .map((p, i) => `<button class="${i === 0 ? 'ativo' : ''}" aria-label="Ir para a notícia ${i + 1}"></button>`)
+        .join('');
+
+      const els = [...caixa.children];
+      const dots = [...pontos.children];
+      let atual = 0;
+      let timer = setInterval(() => vaiPara(atual + 1), 6000);
+
+      function vaiPara(i, manual = false) {
+        atual = (i + els.length) % els.length;
+        els.forEach((el, j) => el.classList.toggle('ativo', j === atual));
+        dots.forEach((d, j) => d.classList.toggle('ativo', j === atual));
+        if (manual) {
+          clearInterval(timer);
+          timer = setInterval(() => vaiPara(atual + 1), 6000);
+        }
+      }
+
+      document.getElementById('slide-prev').addEventListener('click', () => vaiPara(atual - 1, true));
+      document.getElementById('slide-next').addEventListener('click', () => vaiPara(atual + 1, true));
+      dots.forEach((d, i) => d.addEventListener('click', () => vaiPara(i, true)));
+      slider.addEventListener('mouseenter', () => clearInterval(timer));
+      slider.addEventListener('mouseleave', () => {
+        clearInterval(timer);
+        timer = setInterval(() => vaiPara(atual + 1), 6000);
+      });
+    }
+
+    ativaContadorDownloads();
+
+    const [config, destaquesRes, recentesRes, categorias, docsRes] = await Promise.all([
+      pegaConfig(),
+      sb.from('publicacoes').select(SEL_PUB).eq('publicado', true).eq('destaque', true)
+        .order('publicado_em', { ascending: false }).limit(5),
+      sb.from('publicacoes').select(SEL_PUB).eq('publicado', true)
+        .order('publicado_em', { ascending: false }).limit(12),
+      categoriasComTotal(),
+      sb.from('documentos').select('id,titulo,pasta,ano,arquivo,nome_original,mime,tamanho,criado_em')
+        .eq('publicado', true).order('criado_em', { ascending: false }).limit(6),
+    ]);
+
+    const destaques = (destaquesRes.data ?? []).map(normalizaPublicacao);
+    const recentes = (recentesRes.data ?? []).map(normalizaPublicacao);
+    const documentos = docsRes.data ?? [];
+
+    aplicaConfig(config);
+    document.title = config.nome_portal || document.title;
+
+    // Slider do topo: destaques primeiro, completado com as mais recentes (até 5).
+    const idsDestaque = new Set(destaques.map((p) => p.id));
+    const slides = destaques.concat(recentes.filter((p) => !idsDestaque.has(p.id))).slice(0, 5);
+    if (slides.length) {
+      document.getElementById('hero').style.display = 'none';
+      montaSlider(slides);
+    }
+
+    const idsSlider = new Set(slides.map((p) => p.id));
+    const lista = recentes.filter((p) => !idsSlider.has(p.id)).slice(0, 6);
+    if (lista.length) {
+      document.getElementById('recentes').innerHTML = lista.map((p) => cardPublicacao(p)).join('');
+    } else if (!slides.length) {
+      document.getElementById('vazio-recentes').style.display = '';
+    } else {
+      document.getElementById('recentes').innerHTML = slides.slice(0, 6).map((p) => cardPublicacao(p)).join('');
+    }
+
+    document.getElementById('chips-categorias').innerHTML = categorias
+      .filter((c) => c.total > 0)
+      .map((c) => `<a class="chip" href="/noticias.html?categoria=${c.id}">${esc(c.nome)} (${c.total})</a>`)
+      .join('');
+
+    if (documentos.length) {
+      document.getElementById('docs-recentes').innerHTML = documentos.map(itemDocumento).join('');
+    } else {
+      document.getElementById('vazio-docs').style.display = '';
+    }
+  </script>
+</body>
+</html>

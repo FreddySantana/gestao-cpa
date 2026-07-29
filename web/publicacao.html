@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Publicação · Portal CPA</title>
+  <link rel="stylesheet" href="/css/portal.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="container topo-inner">
+      <a class="marca" href="/">
+        <span class="logo">CPA</span>
+        <span data-config="subtitulo">Comissão Própria de Avaliação<small>Estácio</small></span>
+      </a>
+      <nav class="menu">
+        <a href="/">Início</a>
+        <a href="/noticias.html" class="ativo">Notícias</a>
+        <a href="/documentos.html">Documentos</a>
+        <a href="/quem-somos.html">Quem Somos</a>
+        <a id="menu-pesquisa" class="btn-pesquisa" href="#" target="_blank" rel="noopener" style="display:none">Responder Pesquisa</a>
+      </nav>
+      <div class="menu-mobile">
+        <select onchange="if(this.value)location.href=this.value">
+          <option value="">Menu</option>
+          <option value="/">Início</option>
+          <option value="/noticias.html">Notícias</option>
+          <option value="/documentos.html">Documentos</option>
+          <option value="/quem-somos.html">Quem Somos</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <article class="artigo" id="artigo">
+      <p class="vazio">Carregando…</p>
+    </article>
+
+    <section class="secao" id="sec-relacionadas" style="display:none">
+      <div class="secao-cabeca"><h2>Publicações relacionadas</h2></div>
+      <div class="grade" id="relacionadas"></div>
+    </section>
+  </div>
+
+  <footer class="rodape">
+    <div class="container">
+      <span data-config="nome_portal">Portal CPA · Estácio</span>
+      <a href="/quem-somos.html">Quem Somos</a>
+      <a href="/documentos.html">Documentos</a>
+      <a class="admin-link" href="/admin.html">Área administrativa</a>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { sb, SEL_PUB, normalizaPublicacao, urlArquivo, pegaConfig } from '/js/db.js';
+    import { aplicaConfig, cardPublicacao, mdParaHtml, esc, fmtData, fmtTamanho, classeIcone } from '/js/comum.js';
+
+    pegaConfig().then(aplicaConfig);
+
+    const id = Number(new URLSearchParams(location.search).get('id'));
+    const artigo = document.getElementById('artigo');
+    const { data } = await sb
+      .from('publicacoes')
+      .select('*, categorias(nome,cor), anexos(id,arquivo,nome_original,mime,tamanho)')
+      .eq('id', id)
+      .eq('publicado', true)
+      .maybeSingle();
+
+    if (!data) {
+      artigo.innerHTML = '<p class="vazio">Publicação não encontrada. <a href="/noticias.html">Voltar para as notícias</a></p>';
+    } else {
+      const p = normalizaPublicacao(data);
+      sb.rpc('incrementa_visualizacao', { pub_id: p.id }).then(() => {});
+      document.title = `${p.titulo} · Portal CPA`;
+      const cat = p.categoria_nome
+        ? `<span class="etiqueta" style="background:${esc(p.categoria_cor || '#1d4ed8')}">${esc(p.categoria_nome)}</span>`
+        : '';
+      const anexos = p.anexos.length
+        ? `<h2 style="font-size:19px;margin-top:32px">Anexos</h2>
+           <div class="lista-docs" style="margin-top:12px">
+             ${p.anexos
+               .map((a) => {
+                 const [cls, rot] = classeIcone(a.mime, a.nome_original);
+                 return `<div class="doc">
+                   <div class="icone ${cls}">${rot}</div>
+                   <div class="info"><strong>${esc(a.nome_original)}</strong><span>${fmtTamanho(a.tamanho)}</span></div>
+                   <a class="baixar" href="${esc(urlArquivo(a.arquivo, a.nome_original))}" target="_blank" rel="noopener">Baixar</a>
+                 </div>`;
+               })
+               .join('')}
+           </div>`
+        : '';
+      artigo.innerHTML = `
+        ${cat}
+        <h1>${esc(p.titulo)}</h1>
+        <div class="meta">Publicado em ${fmtData(p.publicado_em)} · ${p.visualizacoes + 1} visualização(ões)</div>
+        ${p.capa ? `<img class="capa-artigo" src="${esc(urlArquivo(p.capa))}" alt="">` : ''}
+        ${p.resumo ? `<p style="font-size:18px;color:var(--cinza)">${esc(p.resumo)}</p>` : ''}
+        <div class="conteudo">${mdParaHtml(p.conteudo)}</div>
+        ${anexos}`;
+
+      if (p.categoria_id) {
+        const { data: rel } = await sb
+          .from('publicacoes')
+          .select(SEL_PUB)
+          .eq('publicado', true)
+          .eq('categoria_id', p.categoria_id)
+          .neq('id', p.id)
+          .order('publicado_em', { ascending: false })
+          .limit(4);
+        if (rel?.length) {
+          document.getElementById('sec-relacionadas').style.display = '';
+          document.getElementById('relacionadas').innerHTML = rel
+            .map((x) => cardPublicacao(normalizaPublicacao(x)))
+            .join('');
+        }
+      }
+    }
+  </script>
+</body>
+</html>

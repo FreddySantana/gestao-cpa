@@ -2,6 +2,11 @@
 
 Portal público + painel administrativo da CPA (Comissão Própria de Avaliação): notícias e divulgações, repositório de documentos oficiais, composição da comissão e link para a pesquisa de avaliação institucional em andamento. Substitui o antigo mural no Notion.
 
+O projeto tem **duas versões**:
+
+- **`web/` — versão online (Supabase + Netlify)**: site estático que fala direto com o Supabase (Postgres + Auth + Storage). É a versão publicada. Ver `DEPLOY.md`.
+- **`public/` + Express — versão local (SQLite)**: roda na sua máquina com `npm start`, útil para desenvolvimento e testes sem internet.
+
 ## Rodar
 
 ```bash

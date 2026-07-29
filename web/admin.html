@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel · Portal CPA</title>
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <!-- Login -->
+  <div class="tela-login" id="tela-login">
+    <form class="caixa-login" id="form-login">
+      <div class="logo">CPA</div>
+      <h1>Painel administrativo</h1>
+      <p>Portal da Comissão Própria de Avaliação</p>
+      <label>E-mail</label>
+      <input type="email" id="login-email" required autocomplete="username">
+      <label>Senha</label>
+      <input type="password" id="login-senha" required autocomplete="current-password">
+      <button class="btn btn-largo" type="submit">Entrar</button>
+      <div class="msg" id="login-msg"></div>
+    </form>
+  </div>
+
+  <!-- Painel -->
+  <div class="painel" id="painel">
+    <aside class="lateral">
+      <div class="marca"><span class="logo">CPA</span> Portal CPA</div>
+      <button data-aba="publicacoes" class="ativo">📰 Publicações</button>
+      <button data-aba="documentos">📁 Documentos</button>
+      <button data-aba="membros">👥 Membros</button>
+      <button data-aba="categorias">🏷️ Categorias</button>
+      <button data-aba="config">⚙️ Configurações</button>
+      <div class="rodape-lateral">
+        <span id="ola"></span>
+        <a href="/" target="_blank">Ver portal →</a>
+        <a href="#" id="sair">Sair</a>
+      </div>
+    </aside>
+
+    <main class="conteudo">
+      <!-- Publicações -->
+      <section class="aba visivel" id="aba-publicacoes">
+        <div class="cabeca-aba">
+          <h2>Publicações</h2>
+          <div class="acoes"><button class="btn" id="nova-publicacao">+ Nova publicação</button></div>
+        </div>
+        <div class="filtros-admin">
+          <input type="search" id="pub-busca" placeholder="Buscar…">
+          <select id="pub-filtro-categoria"><option value="">Todas as categorias</option></select>
+          <select id="pub-filtro-situacao">
+            <option value="">Todas as situações</option>
+            <option value="publicado">Publicadas</option>
+            <option value="rascunho">Rascunhos</option>
+          </select>
+        </div>
+        <div class="tabela-wrap"><table>
+          <thead><tr><th>Título</th><th>Categoria</th><th>Situação</th><th>Publicada em</th><th>Views</th><th></th></tr></thead>
+          <tbody id="pub-lista"></tbody>
+        </table></div>
+        <p class="vazio" id="pub-vazio" style="display:none">Nenhuma publicação. Clique em “+ Nova publicação”.</p>
+      </section>
+
+      <!-- Documentos -->
+      <section class="aba" id="aba-documentos">
+        <div class="cabeca-aba"><h2>Repositório de documentos</h2></div>
+        <div class="cartao">
+          <form id="form-doc">
+            <div class="linha">
+              <div><label>Arquivo (PDF ou Office)</label><input type="file" id="doc-arquivo" required accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"></div>
+              <div><label>Título</label><input type="text" id="doc-titulo" placeholder="Ex.: Relatório de Autoavaliação 2025"></div>
+            </div>
+            <div class="linha">
+              <div>
+                <label>Pasta</label>
+                <input type="text" id="doc-pasta" list="lista-pastas" placeholder="Ex.: Relatórios, Atas, Regulamentos…">
+                <datalist id="lista-pastas"></datalist>
+              </div>
+              <div><label>Ano</label><input type="number" id="doc-ano" min="2000" max="2100" placeholder="2026"></div>
+            </div>
+            <label>Descrição (opcional)</label>
+            <input type="text" id="doc-descricao">
+            <button class="btn" style="margin-top:16px" type="submit">Enviar documento</button>
+            <div class="msg" id="doc-msg"></div>
+          </form>
+        </div>
+        <div class="filtros-admin">
+          <input type="search" id="doc-busca" placeholder="Buscar documento…">
+        </div>
+        <div class="tabela-wrap"><table>
+          <thead><tr><th>Título</th><th>Pasta</th><th>Ano</th><th>Tamanho</th><th>Downloads</th><th>Visível</th><th></th></tr></thead>
+          <tbody id="doc-lista"></tbody>
+        </table></div>
+        <p class="vazio" id="doc-vazio" style="display:none">Nenhum documento enviado ainda.</p>
+      </section>
+
+      <!-- Membros -->
+      <section class="aba" id="aba-membros">
+        <div class="cabeca-aba"><h2>Membros da CPA</h2></div>
+        <div class="cartao">
+          <h3 id="membro-form-titulo" style="font-size:16px;margin-bottom:4px">Adicionar membro</h3>
+          <form id="form-membro">
+            <div class="linha">
+              <div><label>Nome</label><input type="text" id="membro-nome" required></div>
+              <div>
+                <label>Função</label>
+                <select id="membro-funcao">
+                  <option>Presidente</option>
+                  <option selected>Membro</option>
+                  <option>Vice-Presidente</option>
+                  <option>Secretário(a)</option>
+                </select>
+              </div>
+            </div>
+            <div class="linha">
+              <div>
+                <label>Segmento</label>
+                <select id="membro-segmento">
+                  <option>Docente</option>
+                  <option>Discente</option>
+                  <option>Técnico-administrativo</option>
+                  <option>Sociedade Civil</option>
+                </select>
+              </div>
+              <div><label>E-mail (opcional)</label><input type="email" id="membro-email"></div>
+              <div><label>Ordem de exibição</label><input type="number" id="membro-ordem" value="0"></div>
+            </div>
+            <label>Apresentação (aparece no card do portal)</label>
+            <textarea id="membro-bio" style="min-height:70px" placeholder="Ex.: Professora do curso de Engenharia, atua na CPA desde 2024 representando os docentes."></textarea>
+            <div class="linha" style="align-items:flex-end">
+              <div>
+                <label>Foto</label>
+                <input type="file" id="membro-foto" accept="image/*">
+                <img class="capa-previa" id="membro-foto-previa" style="display:none;max-height:80px;border-radius:50%">
+                <label class="check" id="membro-remover-foto-wrap" style="display:none"><input type="checkbox" id="membro-remover-foto"> Remover foto atual</label>
+              </div>
+              <div style="flex:0;white-space:nowrap">
+                <label class="check" id="membro-ativo-wrap" style="display:none;margin:0 0 10px"><input type="checkbox" id="membro-ativo" checked> Ativo</label>
+                <button class="btn" type="submit" id="membro-salvar">Adicionar membro</button>
+                <button class="btn claro" type="button" id="membro-cancelar" style="display:none">Cancelar</button>
+              </div>
+            </div>
+            <div class="msg" id="membro-msg"></div>
+          </form>
+        </div>
+        <div class="tabela-wrap"><table>
+          <thead><tr><th></th><th>Nome</th><th>Função</th><th>Segmento</th><th>E-mail</th><th>Ordem</th><th>Ativo</th><th></th></tr></thead>
+          <tbody id="membro-lista"></tbody>
+        </table></div>
+        <p class="vazio" id="membro-vazio" style="display:none">Nenhum membro cadastrado.</p>
+      </section>
+
+      <!-- Categorias -->
+      <section class="aba" id="aba-categorias">
+        <div class="cabeca-aba"><h2>Categorias</h2></div>
+        <div class="cartao">
+          <form id="form-categoria" class="linha" style="align-items:flex-end">
+            <div><label>Nome</label><input type="text" id="cat-nome" required placeholder="Ex.: Editais"></div>
+            <div style="flex:0"><label>Cor</label><input type="color" id="cat-cor" value="#1d4ed8"></div>
+            <div style="flex:0"><label>Ordem</label><input type="number" id="cat-ordem" value="0" style="width:90px"></div>
+            <div style="flex:0"><button class="btn" type="submit">Adicionar</button></div>
+          </form>
+          <div class="msg" id="cat-msg"></div>
+        </div>
+        <div class="tabela-wrap"><table>
+          <thead><tr><th>Categoria</th><th>Publicações</th><th>Ordem</th><th>Ativa</th><th></th></tr></thead>
+          <tbody id="cat-lista"></tbody>
+        </table></div>
+      </section>
+
+      <!-- Configurações -->
+      <section class="aba" id="aba-config">
+        <div class="cabeca-aba"><h2>Configurações do portal</h2></div>
+        <div class="cartao">
+          <form id="form-config">
+            <div class="linha">
+              <div><label>Nome do portal</label><input type="text" id="cfg-nome_portal"></div>
+              <div><label>Subtítulo</label><input type="text" id="cfg-subtitulo"></div>
+            </div>
+            <label>Texto “Quem Somos” / apresentação da CPA</label>
+            <textarea id="cfg-texto_sobre"></textarea>
+            <div class="linha">
+              <div>
+                <label>Link da pesquisa em andamento</label>
+                <input type="url" id="cfg-link_pesquisa" placeholder="https://forms.office.com/…">
+                <p class="dica">Se preenchido, aparece um banner “Responder Pesquisa” no portal. Deixe vazio para esconder.</p>
+              </div>
+              <div><label>Nome da pesquisa</label><input type="text" id="cfg-texto_pesquisa"></div>
+            </div>
+            <label>E-mail de contato da CPA</label>
+            <input type="email" id="cfg-email_contato">
+            <button class="btn" style="margin-top:18px" type="submit">Salvar configurações</button>
+            <div class="msg" id="cfg-msg"></div>
+          </form>
+        </div>
+        <div class="cartao">
+          <h3 style="font-size:16px;margin-bottom:4px">Trocar senha</h3>
+          <form id="form-senha">
+            <div class="linha">
+              <div><label>Senha atual</label><input type="password" id="senha-atual" autocomplete="current-password"></div>
+              <div><label>Nova senha</label><input type="password" id="senha-nova" autocomplete="new-password"></div>
+            </div>
+            <button class="btn claro" style="margin-top:16px" type="submit">Alterar senha</button>
+            <div class="msg" id="senha-msg"></div>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal de publicação -->
+  <div class="modal-fundo" id="modal-pub">
+    <div class="modal">
+      <button class="fechar" id="pub-fechar">×</button>
+      <h3 id="pub-modal-titulo">Nova publicação</h3>
+      <form id="form-pub">
+        <div id="pub-campos">
+        <label>Título</label>
+        <input type="text" id="pub-titulo" required>
+        <div class="linha">
+          <div><label>Categoria</label><select id="pub-categoria"></select></div>
+        </div>
+        <label>Resumo (aparece nos cards e na busca)</label>
+        <textarea id="pub-resumo" style="min-height:64px"></textarea>
+        <label>Conteúdo</label>
+        <textarea id="pub-conteudo" class="grande"></textarea>
+        <p class="dica">Formatação: <b>## Título</b> para seções, <b>**negrito**</b>, <b>*itálico*</b>, <b>- item</b> para listas, <b>[texto](https://link)</b> para links, <b>&gt; citação</b>.</p>
+        <div class="linha">
+          <div>
+            <label>Imagem de capa</label>
+            <input type="file" id="pub-capa" accept="image/*">
+            <img class="capa-previa" id="pub-capa-previa" style="display:none">
+            <label class="check" id="pub-remover-capa-wrap" style="display:none"><input type="checkbox" id="pub-remover-capa"> Remover capa atual</label>
+          </div>
+          <div>
+            <label>Anexos (PDF, Office ou imagens)</label>
+            <input type="file" id="pub-anexos" multiple>
+            <div id="pub-anexos-atuais"></div>
+          </div>
+        </div>
+        <div class="linha">
+          <label class="check"><input type="checkbox" id="pub-destaque"> Destacar na página inicial</label>
+          <label class="check"><input type="checkbox" id="pub-publicado" checked> Publicar (desmarcado = rascunho)</label>
+        </div>
+        </div>
+        <div id="pub-previa" class="previa" style="display:none"></div>
+        <div class="linha" style="margin-top:20px">
+          <button class="btn claro" type="button" id="pub-ver-previa" style="flex:1">👁 Pré-visualizar</button>
+          <button class="btn" type="submit" style="flex:2">Salvar publicação</button>
+        </div>
+        <div class="msg" id="pub-msg"></div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="/js/admin.js"></script>
+</body>
+</html>
