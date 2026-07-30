@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Publicação · Portal CPA</title>
   <link rel="stylesheet" href="/css/portal.css">
+  <link rel="preconnect" href="https://nzsjbakghksbuvammgtp.supabase.co" crossorigin>
+  <link rel="modulepreload" href="/js/config.js">
+  <link rel="modulepreload" href="/js/vendor/supabase-bundle.mjs">
+  <link rel="modulepreload" href="/js/db.js">
+  <link rel="modulepreload" href="/js/comum.js">
 </head>
 <body>
   <header class="topo">
@@ -34,7 +39,12 @@
 
   <div class="container">
     <article class="artigo" id="artigo">
-      <p class="vazio">Carregando…</p>
+      <div class="sk-titulo skeleton"></div>
+      <div class="sk-linha skeleton" style="width:40%"></div>
+      <div class="skeleton" style="height:260px;margin:20px 0"></div>
+      <div class="sk-linha skeleton"></div>
+      <div class="sk-linha skeleton" style="width:85%"></div>
+      <div class="sk-linha skeleton" style="width:70%"></div>
     </article>
 
     <section class="secao" id="sec-relacionadas" style="display:none">
@@ -53,10 +63,10 @@
   </footer>
 
   <script type="module">
-    import { sb, SEL_PUB, normalizaPublicacao, urlArquivo, pegaConfig } from '/js/db.js';
+    import { sb, SEL_PUB, normalizaPublicacao, urlArquivo, pegaConfig, comCache } from '/js/db.js';
     import { aplicaConfig, cardPublicacao, mdParaHtml, esc, fmtData, fmtTamanho, classeIcone } from '/js/comum.js';
 
-    pegaConfig().then(aplicaConfig);
+    comCache('config', pegaConfig, aplicaConfig);
 
     const id = Number(new URLSearchParams(location.search).get('id'));
     const artigo = document.getElementById('artigo');

@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Documentos · Portal CPA</title>
   <link rel="stylesheet" href="/css/portal.css">
+  <link rel="preconnect" href="https://nzsjbakghksbuvammgtp.supabase.co" crossorigin>
+  <link rel="modulepreload" href="/js/config.js">
+  <link rel="modulepreload" href="/js/vendor/supabase-bundle.mjs">
+  <link rel="modulepreload" href="/js/db.js">
+  <link rel="modulepreload" href="/js/comum.js">
 </head>
 <body>
   <header class="topo">
@@ -42,7 +47,7 @@
       <select id="filtro-pasta"><option value="">Todas as pastas</option></select>
       <select id="filtro-ano"><option value="">Todos os anos</option></select>
     </div>
-    <div id="lista"></div>
+    <div id="lista"><div class="lista-docs"><div class="doc sk-doc skeleton"></div><div class="doc sk-doc skeleton"></div><div class="doc sk-doc skeleton"></div></div></div>
     <p class="vazio" id="vazio" style="display:none">Nenhum documento encontrado.</p>
   </section>
 
@@ -56,10 +61,10 @@
   </footer>
 
   <script type="module">
-    import { sb, pegaConfig, ativaContadorDownloads } from '/js/db.js';
+    import { sb, pegaConfig, ativaContadorDownloads, comCache } from '/js/db.js';
     import { aplicaConfig, itemDocumento, esc } from '/js/comum.js';
 
-    pegaConfig().then(aplicaConfig);
+    comCache('config', pegaConfig, aplicaConfig);
     ativaContadorDownloads();
 
     // Carrega tudo uma vez e filtra no navegador (o repositório é pequeno o bastante).

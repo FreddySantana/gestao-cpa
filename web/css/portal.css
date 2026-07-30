@@ -265,6 +265,27 @@ img { max-width: 100%; }
 }
 .membro .contato { margin-top: auto; padding-top: 10px; font-size: 12.5px; }
 
+/* ---------- Skeletons (carregamento) ---------- */
+@keyframes pulsa-skeleton {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.skeleton {
+  background: linear-gradient(100deg, #e8ecf5 40%, #f3f6fb 50%, #e8ecf5 60%);
+  border-radius: 10px;
+  animation: pulsa-skeleton 1.4s ease-in-out infinite;
+  color: transparent !important;
+  border-color: transparent !important;
+  user-select: none;
+  pointer-events: none;
+}
+.skeleton * { visibility: hidden; }
+.sk-card { min-height: 300px; }
+.sk-doc { min-height: 72px; }
+.sk-membro { min-height: 260px; }
+.sk-linha { height: 16px; margin: 8px 0; }
+.sk-titulo { height: 28px; width: 60%; margin: 12px 0; }
+
 /* ---------- Diversos ---------- */
 .vazio { color: var(--cinza); text-align: center; padding: 40px 0; font-size: 15px; }
 .paginacao { display: flex; gap: 8px; justify-content: center; padding: 28px 0; }

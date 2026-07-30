@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quem Somos · Portal CPA</title>
   <link rel="stylesheet" href="/css/portal.css">
+  <link rel="preconnect" href="https://nzsjbakghksbuvammgtp.supabase.co" crossorigin>
+  <link rel="modulepreload" href="/js/config.js">
+  <link rel="modulepreload" href="/js/vendor/supabase-bundle.mjs">
+  <link rel="modulepreload" href="/js/db.js">
+  <link rel="modulepreload" href="/js/comum.js">
 </head>
 <body>
   <header class="topo">
@@ -42,7 +47,7 @@
 
   <section class="secao container">
     <div class="secao-cabeca"><h2>Membros da comissão</h2></div>
-    <div class="membros" id="membros"></div>
+    <div class="membros" id="membros"><div class="membro sk-membro skeleton"></div><div class="membro sk-membro skeleton"></div><div class="membro sk-membro skeleton"></div></div>
     <p class="vazio" id="vazio" style="display:none">A composição da comissão será divulgada em breve.</p>
   </section>
 
@@ -56,21 +61,25 @@
   </footer>
 
   <script type="module">
-    import { sb, urlArquivo, pegaConfig } from '/js/db.js';
+    import { sb, urlArquivo, pegaConfig, comCache } from '/js/db.js';
     import { aplicaConfig, esc } from '/js/comum.js';
 
-    const [config, membrosRes] = await Promise.all([
-      pegaConfig(),
-      sb.from('membros').select('nome,funcao,segmento,email,bio,foto,ordem').eq('ativo', true).order('ordem').order('nome'),
-    ]);
-    const membros = membrosRes.data ?? [];
+    comCache('config', pegaConfig, (config) => {
+      aplicaConfig(config);
+      document.getElementById('texto-sobre').textContent = config.texto_sobre || '';
+      if (config.email_contato) {
+        document.getElementById('contato').innerHTML =
+          `Contato: <a href="mailto:${esc(config.email_contato)}">${esc(config.email_contato)}</a>`;
+      }
+    });
 
-    aplicaConfig(config);
-    document.getElementById('texto-sobre').textContent = config.texto_sobre || '';
-    if (config.email_contato) {
-      document.getElementById('contato').innerHTML =
-        `Contato: <a href="mailto:${esc(config.email_contato)}">${esc(config.email_contato)}</a>`;
-    }
+    const { data } = await sb
+      .from('membros')
+      .select('nome,funcao,segmento,email,bio,foto,ordem')
+      .eq('ativo', true)
+      .order('ordem')
+      .order('nome');
+    const membros = data ?? [];
 
     const iniciais = (nome) =>
       nome.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join('');
@@ -90,6 +99,7 @@
         )
         .join('');
     } else {
+      document.getElementById('membros').innerHTML = '';
       document.getElementById('vazio').style.display = '';
     }
   </script>

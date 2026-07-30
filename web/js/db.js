@@ -1,5 +1,6 @@
 // Cliente Supabase + acesso a dados compartilhado entre as páginas.
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+// supabase-js hospedado localmente (web/js/vendor) para evitar a viagem extra ao CDN.
+import { createClient } from './vendor/supabase-bundle.mjs';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
 export const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -22,6 +23,34 @@ export function normalizaPublicacao(p) {
     categoria_nome: p.categorias?.nome ?? null,
     categoria_cor: p.categorias?.cor ?? null,
   };
+}
+
+/* Cache local (stale-while-revalidate): renderiza na hora com a última resposta
+   e atualiza por baixo quando o banco responder. */
+export function cacheLe(chave) {
+  try {
+    return JSON.parse(localStorage.getItem(`cpa:${chave}`));
+  } catch {
+    return null;
+  }
+}
+
+export function cacheGrava(chave, valor) {
+  try {
+    localStorage.setItem(`cpa:${chave}`, JSON.stringify(valor));
+  } catch {
+    /* armazenamento cheio/indisponível: segue sem cache */
+  }
+}
+
+// Busca com cache: chama render() imediatamente com o cache (se houver) e de
+// novo com os dados frescos — a menos que sejam idênticos aos do cache.
+export async function comCache(chave, busca, render) {
+  const antigo = cacheLe(chave);
+  if (antigo != null) render(antigo, true);
+  const fresco = await busca();
+  cacheGrava(chave, fresco);
+  if (antigo == null || JSON.stringify(antigo) !== JSON.stringify(fresco)) render(fresco, false);
 }
 
 export async function pegaConfig() {

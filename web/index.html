@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portal CPA · Estácio</title>
   <link rel="stylesheet" href="/css/portal.css">
+  <!-- Abre a conexão com o banco e baixa os módulos em paralelo com o HTML -->
+  <link rel="preconnect" href="https://nzsjbakghksbuvammgtp.supabase.co" crossorigin>
+  <link rel="modulepreload" href="/js/config.js">
+  <link rel="modulepreload" href="/js/vendor/supabase-bundle.mjs">
+  <link rel="modulepreload" href="/js/db.js">
+  <link rel="modulepreload" href="/js/comum.js">
 </head>
 <body>
   <header class="topo">
@@ -65,8 +71,8 @@
       <h2>Últimas publicações</h2>
       <a href="/noticias.html">Ver todas →</a>
     </div>
-    <div class="chips" id="chips-categorias"></div>
-    <div class="grade" id="recentes"></div>
+    <div class="chips" id="chips-categorias"><span class="chip skeleton" style="width:130px">&nbsp;</span><span class="chip skeleton" style="width:150px">&nbsp;</span><span class="chip skeleton" style="width:110px">&nbsp;</span></div>
+    <div class="grade" id="recentes"><div class="card sk-card skeleton"></div><div class="card sk-card skeleton"></div><div class="card sk-card skeleton"></div></div>
     <p class="vazio" id="vazio-recentes" style="display:none">Nenhuma publicação ainda. Em breve, novidades da CPA por aqui!</p>
   </section>
 
@@ -75,7 +81,7 @@
       <h2>Documentos recentes</h2>
       <a href="/documentos.html">Ver repositório completo →</a>
     </div>
-    <div class="lista-docs" id="docs-recentes"></div>
+    <div class="lista-docs" id="docs-recentes"><div class="doc sk-doc skeleton"></div><div class="doc sk-doc skeleton"></div></div>
     <p class="vazio" id="vazio-docs" style="display:none">Nenhum documento publicado ainda.</p>
   </section>
 
@@ -89,8 +95,10 @@
   </footer>
 
   <script type="module">
-    import { sb, SEL_PUB, normalizaPublicacao, urlArquivo, pegaConfig, categoriasComTotal, ativaContadorDownloads } from '/js/db.js';
+    import { sb, SEL_PUB, normalizaPublicacao, urlArquivo, pegaConfig, categoriasComTotal, ativaContadorDownloads, comCache } from '/js/db.js';
     import { aplicaConfig, cardPublicacao, itemDocumento, esc, fmtData } from '/js/comum.js';
+
+    let sliderTimer = null;
 
     function montaSlider(slides) {
       const slider = document.getElementById('slider');
@@ -124,76 +132,91 @@
       const els = [...caixa.children];
       const dots = [...pontos.children];
       let atual = 0;
-      let timer = setInterval(() => vaiPara(atual + 1), 6000);
+      if (sliderTimer) clearInterval(sliderTimer);
+      sliderTimer = setInterval(() => vaiPara(atual + 1), 6000);
 
       function vaiPara(i, manual = false) {
         atual = (i + els.length) % els.length;
         els.forEach((el, j) => el.classList.toggle('ativo', j === atual));
         dots.forEach((d, j) => d.classList.toggle('ativo', j === atual));
         if (manual) {
-          clearInterval(timer);
-          timer = setInterval(() => vaiPara(atual + 1), 6000);
+          clearInterval(sliderTimer);
+          sliderTimer = setInterval(() => vaiPara(atual + 1), 6000);
         }
       }
 
-      document.getElementById('slide-prev').addEventListener('click', () => vaiPara(atual - 1, true));
-      document.getElementById('slide-next').addEventListener('click', () => vaiPara(atual + 1, true));
-      dots.forEach((d, i) => d.addEventListener('click', () => vaiPara(i, true)));
-      slider.addEventListener('mouseenter', () => clearInterval(timer));
-      slider.addEventListener('mouseleave', () => {
-        clearInterval(timer);
-        timer = setInterval(() => vaiPara(atual + 1), 6000);
-      });
+      // onclick/onmouseenter (e não addEventListener) para o re-render não acumular handlers.
+      document.getElementById('slide-prev').onclick = () => vaiPara(atual - 1, true);
+      document.getElementById('slide-next').onclick = () => vaiPara(atual + 1, true);
+      dots.forEach((d, i) => (d.onclick = () => vaiPara(i, true)));
+      slider.onmouseenter = () => clearInterval(sliderTimer);
+      slider.onmouseleave = () => {
+        clearInterval(sliderTimer);
+        sliderTimer = setInterval(() => vaiPara(atual + 1), 6000);
+      };
+    }
+
+    function renderHome({ config, destaques, recentes, categorias, documentos }) {
+      aplicaConfig(config);
+      document.title = config.nome_portal || document.title;
+
+      // Slider do topo: destaques primeiro, completado com as mais recentes (até 5).
+      const idsDestaque = new Set(destaques.map((p) => p.id));
+      const slides = destaques.concat(recentes.filter((p) => !idsDestaque.has(p.id))).slice(0, 5);
+      if (slides.length) {
+        document.getElementById('hero').style.display = 'none';
+        montaSlider(slides);
+      } else {
+        document.getElementById('hero').style.display = '';
+        document.getElementById('slider').style.display = 'none';
+      }
+
+      const idsSlider = new Set(slides.map((p) => p.id));
+      const lista = recentes.filter((p) => !idsSlider.has(p.id)).slice(0, 6);
+      if (lista.length) {
+        document.getElementById('recentes').innerHTML = lista.map((p) => cardPublicacao(p)).join('');
+      } else if (!slides.length) {
+        document.getElementById('recentes').innerHTML = '';
+        document.getElementById('vazio-recentes').style.display = '';
+      } else {
+        document.getElementById('recentes').innerHTML = slides.slice(0, 6).map((p) => cardPublicacao(p)).join('');
+      }
+
+      document.getElementById('chips-categorias').innerHTML = categorias
+        .filter((c) => c.total > 0)
+        .map((c) => `<a class="chip" href="/noticias.html?categoria=${c.id}">${esc(c.nome)} (${c.total})</a>`)
+        .join('');
+
+      if (documentos.length) {
+        document.getElementById('docs-recentes').innerHTML = documentos.map(itemDocumento).join('');
+      } else {
+        document.getElementById('docs-recentes').innerHTML = '';
+        document.getElementById('vazio-docs').style.display = '';
+      }
+    }
+
+    async function buscaHome() {
+      const [config, destaquesRes, recentesRes, categorias, docsRes] = await Promise.all([
+        pegaConfig(),
+        sb.from('publicacoes').select(SEL_PUB).eq('publicado', true).eq('destaque', true)
+          .order('publicado_em', { ascending: false }).limit(5),
+        sb.from('publicacoes').select(SEL_PUB).eq('publicado', true)
+          .order('publicado_em', { ascending: false }).limit(12),
+        categoriasComTotal(),
+        sb.from('documentos').select('id,titulo,pasta,ano,arquivo,nome_original,mime,tamanho,criado_em')
+          .eq('publicado', true).order('criado_em', { ascending: false }).limit(6),
+      ]);
+      return {
+        config,
+        destaques: (destaquesRes.data ?? []).map(normalizaPublicacao),
+        recentes: (recentesRes.data ?? []).map(normalizaPublicacao),
+        categorias,
+        documentos: docsRes.data ?? [],
+      };
     }
 
     ativaContadorDownloads();
-
-    const [config, destaquesRes, recentesRes, categorias, docsRes] = await Promise.all([
-      pegaConfig(),
-      sb.from('publicacoes').select(SEL_PUB).eq('publicado', true).eq('destaque', true)
-        .order('publicado_em', { ascending: false }).limit(5),
-      sb.from('publicacoes').select(SEL_PUB).eq('publicado', true)
-        .order('publicado_em', { ascending: false }).limit(12),
-      categoriasComTotal(),
-      sb.from('documentos').select('id,titulo,pasta,ano,arquivo,nome_original,mime,tamanho,criado_em')
-        .eq('publicado', true).order('criado_em', { ascending: false }).limit(6),
-    ]);
-
-    const destaques = (destaquesRes.data ?? []).map(normalizaPublicacao);
-    const recentes = (recentesRes.data ?? []).map(normalizaPublicacao);
-    const documentos = docsRes.data ?? [];
-
-    aplicaConfig(config);
-    document.title = config.nome_portal || document.title;
-
-    // Slider do topo: destaques primeiro, completado com as mais recentes (até 5).
-    const idsDestaque = new Set(destaques.map((p) => p.id));
-    const slides = destaques.concat(recentes.filter((p) => !idsDestaque.has(p.id))).slice(0, 5);
-    if (slides.length) {
-      document.getElementById('hero').style.display = 'none';
-      montaSlider(slides);
-    }
-
-    const idsSlider = new Set(slides.map((p) => p.id));
-    const lista = recentes.filter((p) => !idsSlider.has(p.id)).slice(0, 6);
-    if (lista.length) {
-      document.getElementById('recentes').innerHTML = lista.map((p) => cardPublicacao(p)).join('');
-    } else if (!slides.length) {
-      document.getElementById('vazio-recentes').style.display = '';
-    } else {
-      document.getElementById('recentes').innerHTML = slides.slice(0, 6).map((p) => cardPublicacao(p)).join('');
-    }
-
-    document.getElementById('chips-categorias').innerHTML = categorias
-      .filter((c) => c.total > 0)
-      .map((c) => `<a class="chip" href="/noticias.html?categoria=${c.id}">${esc(c.nome)} (${c.total})</a>`)
-      .join('');
-
-    if (documentos.length) {
-      document.getElementById('docs-recentes').innerHTML = documentos.map(itemDocumento).join('');
-    } else {
-      document.getElementById('vazio-docs').style.display = '';
-    }
+    comCache('home', buscaHome, renderHome);
   </script>
 </body>
 </html>

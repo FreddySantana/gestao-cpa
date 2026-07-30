@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Notícias · Portal CPA</title>
   <link rel="stylesheet" href="/css/portal.css">
+  <link rel="preconnect" href="https://nzsjbakghksbuvammgtp.supabase.co" crossorigin>
+  <link rel="modulepreload" href="/js/config.js">
+  <link rel="modulepreload" href="/js/vendor/supabase-bundle.mjs">
+  <link rel="modulepreload" href="/js/db.js">
+  <link rel="modulepreload" href="/js/comum.js">
 </head>
 <body>
   <header class="topo">
@@ -37,8 +42,8 @@
     <div class="filtros">
       <input type="search" id="busca" placeholder="Buscar por título ou conteúdo…">
     </div>
-    <div class="chips" id="chips"></div>
-    <div class="grade" id="lista"></div>
+    <div class="chips" id="chips"><span class="chip skeleton" style="width:70px">&nbsp;</span><span class="chip skeleton" style="width:130px">&nbsp;</span><span class="chip skeleton" style="width:110px">&nbsp;</span></div>
+    <div class="grade" id="lista"><div class="card sk-card skeleton"></div><div class="card sk-card skeleton"></div><div class="card sk-card skeleton"></div></div>
     <p class="vazio" id="vazio" style="display:none">Nenhuma publicação encontrada.</p>
     <div class="paginacao" id="paginacao"></div>
   </section>
@@ -53,7 +58,7 @@
   </footer>
 
   <script type="module">
-    import { sb, SEL_PUB, normalizaPublicacao, pegaConfig, categoriasComTotal } from '/js/db.js';
+    import { sb, SEL_PUB, normalizaPublicacao, pegaConfig, categoriasComTotal, comCache } from '/js/db.js';
     import { aplicaConfig, cardPublicacao, esc } from '/js/comum.js';
 
     const params = new URLSearchParams(location.search);
@@ -62,8 +67,12 @@
     let pagina = 1;
     const porPagina = 12;
 
-    const [config, categorias] = await Promise.all([pegaConfig(), categoriasComTotal()]);
-    aplicaConfig(config);
+    comCache('config', pegaConfig, aplicaConfig);
+    let categorias = [];
+    comCache('categorias', categoriasComTotal, (dados) => {
+      categorias = dados;
+      renderChips();
+    });
 
     function renderChips() {
       const chips = [`<button class="chip${!categoria ? ' ativo' : ''}" data-cat="">Todas</button>`].concat(
@@ -124,7 +133,6 @@
       }, 300);
     });
 
-    renderChips();
     carrega();
   </script>
 </body>
