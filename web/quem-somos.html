@@ -61,7 +61,7 @@
   </footer>
 
   <script type="module">
-    import { sb, urlArquivo, pegaConfig, comCache } from '/js/db.js';
+    import { sb, urlArquivo, pegaConfig, comCache, exigeDados } from '/js/db.js';
     import { aplicaConfig, esc } from '/js/comum.js';
 
     comCache('config', pegaConfig, (config) => {
@@ -73,35 +73,42 @@
       }
     });
 
-    const { data } = await sb
-      .from('membros')
-      .select('nome,funcao,segmento,email,bio,foto,ordem')
-      .eq('ativo', true)
-      .order('ordem')
-      .order('nome');
-    const membros = data ?? [];
-
     const iniciais = (nome) =>
       nome.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join('');
 
-    if (membros.length) {
-      document.getElementById('membros').innerHTML = membros
-        .map(
-          (m) => `
-          <div class="membro">
-            <div class="avatar">${m.foto ? `<img src="${esc(urlArquivo(m.foto))}" alt="Foto de ${esc(m.nome)}">` : esc(iniciais(m.nome))}</div>
-            <strong>${esc(m.nome)}</strong>
-            <span class="funcao">${esc(m.funcao)}</span><br>
-            <span class="segmento">${esc(m.segmento)}</span>
-            ${m.bio ? `<p class="bio">${esc(m.bio)}</p>` : ''}
-            ${m.email ? `<div class="contato"><a href="mailto:${esc(m.email)}">${esc(m.email)}</a></div>` : ''}
-          </div>`
-        )
-        .join('');
-    } else {
-      document.getElementById('membros').innerHTML = '';
-      document.getElementById('vazio').style.display = '';
+    function renderMembros(membros) {
+      if (membros.length) {
+        document.getElementById('vazio').style.display = 'none';
+        document.getElementById('membros').innerHTML = membros
+          .map(
+            (m) => `
+            <div class="membro">
+              <div class="avatar">${m.foto ? `<img src="${esc(urlArquivo(m.foto))}" alt="Foto de ${esc(m.nome)}">` : esc(iniciais(m.nome))}</div>
+              <strong>${esc(m.nome)}</strong>
+              <span class="funcao">${esc(m.funcao)}</span><br>
+              <span class="segmento">${esc(m.segmento)}</span>
+              ${m.bio ? `<p class="bio">${esc(m.bio)}</p>` : ''}
+              ${m.email ? `<div class="contato"><a href="mailto:${esc(m.email)}">${esc(m.email)}</a></div>` : ''}
+            </div>`
+          )
+          .join('');
+      } else {
+        document.getElementById('membros').innerHTML = '';
+        document.getElementById('vazio').style.display = '';
+      }
     }
+
+    comCache('membros', async () => {
+      const data = exigeDados(
+        await sb
+          .from('membros')
+          .select('nome,funcao,segmento,email,bio,foto,ordem')
+          .eq('ativo', true)
+          .order('ordem')
+          .order('nome')
+      );
+      return data ?? [];
+    }, renderMembros);
   </script>
 </body>
 </html>

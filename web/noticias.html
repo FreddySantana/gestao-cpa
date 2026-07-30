@@ -58,7 +58,7 @@
   </footer>
 
   <script type="module">
-    import { sb, SEL_PUB, normalizaPublicacao, pegaConfig, categoriasComTotal, comCache } from '/js/db.js';
+    import { sb, SEL_PUB, normalizaPublicacao, pegaConfig, categoriasComTotal, comCache, exigeDados } from '/js/db.js';
     import { aplicaConfig, cardPublicacao, esc } from '/js/comum.js';
 
     const params = new URLSearchParams(location.search);
@@ -91,7 +91,7 @@
       );
     }
 
-    async function carrega() {
+    async function buscaLista() {
       let q = sb.from('publicacoes').select(SEL_PUB, { count: 'exact' }).eq('publicado', true);
       if (categoria) q = q.eq('categoria_id', Number(categoria));
       if (busca) {
@@ -100,12 +100,15 @@
         if (b) q = q.or(`titulo.ilike.%${b}%,resumo.ilike.%${b}%,conteudo.ilike.%${b}%`);
       }
       const de = (pagina - 1) * porPagina;
-      const { data, count } = await q.order('publicado_em', { ascending: false }).range(de, de + porPagina - 1);
-      const publicacoes = (data ?? []).map(normalizaPublicacao);
+      const r = await q.order('publicado_em', { ascending: false }).range(de, de + porPagina - 1);
+      const data = exigeDados(r);
+      return { publicacoes: (data ?? []).map(normalizaPublicacao), count: r.count ?? 0 };
+    }
 
+    function renderLista({ publicacoes, count }) {
       document.getElementById('lista').innerHTML = publicacoes.map((p) => cardPublicacao(p)).join('');
       document.getElementById('vazio').style.display = publicacoes.length ? 'none' : '';
-      const totalPaginas = Math.ceil((count ?? 0) / porPagina);
+      const totalPaginas = Math.ceil(count / porPagina);
       const pag = document.getElementById('paginacao');
       if (totalPaginas <= 1) {
         pag.innerHTML = '';
@@ -121,6 +124,12 @@
           })
         );
       }
+    }
+
+    async function carrega() {
+      // A listagem padrão (sem filtro) renderiza na hora com o cache da última visita.
+      if (pagina === 1 && !busca && !categoria) return comCache('noticias', buscaLista, renderLista);
+      renderLista(await buscaLista());
     }
 
     let timer;

@@ -63,25 +63,50 @@
   </footer>
 
   <script type="module">
-    import { sb, SEL_PUB, normalizaPublicacao, urlArquivo, pegaConfig, comCache } from '/js/db.js';
+    import { sb, SEL_PUB, normalizaPublicacao, urlArquivo, pegaConfig, comCache, exigeDados } from '/js/db.js';
     import { aplicaConfig, cardPublicacao, mdParaHtml, esc, fmtData, fmtTamanho, classeIcone } from '/js/comum.js';
 
     comCache('config', pegaConfig, aplicaConfig);
 
     const id = Number(new URLSearchParams(location.search).get('id'));
     const artigo = document.getElementById('artigo');
-    const { data } = await sb
-      .from('publicacoes')
-      .select('*, categorias(nome,cor), anexos(id,arquivo,nome_original,mime,tamanho)')
-      .eq('id', id)
-      .eq('publicado', true)
-      .maybeSingle();
 
-    if (!data) {
-      artigo.innerHTML = '<p class="vazio">Publicação não encontrada. <a href="/noticias.html">Voltar para as notícias</a></p>';
-    } else {
-      const p = normalizaPublicacao(data);
-      sb.rpc('incrementa_visualizacao', { pub_id: p.id }).then(() => {});
+    // Conta a visualização uma única vez por acesso (a função ignora ids não publicados).
+    if (id) sb.rpc('incrementa_visualizacao', { pub_id: id }).then(() => {});
+
+    async function buscaPub() {
+      const data = exigeDados(
+        await sb
+          .from('publicacoes')
+          .select('*, categorias(nome,cor), anexos(id,arquivo,nome_original,mime,tamanho)')
+          .eq('id', id)
+          .eq('publicado', true)
+          .maybeSingle()
+      );
+      if (!data) return { p: null, relacionadas: [] };
+      let relacionadas = [];
+      if (data.categoria_id) {
+        const rel = exigeDados(
+          await sb
+            .from('publicacoes')
+            .select(SEL_PUB)
+            .eq('publicado', true)
+            .eq('categoria_id', data.categoria_id)
+            .neq('id', id)
+            .order('publicado_em', { ascending: false })
+            .limit(4)
+        );
+        relacionadas = rel ?? [];
+      }
+      return { p: data, relacionadas };
+    }
+
+    function renderPub({ p: bruta, relacionadas }) {
+      if (!bruta) {
+        artigo.innerHTML = '<p class="vazio">Publicação não encontrada. <a href="/noticias.html">Voltar para as notícias</a></p>';
+        return;
+      }
+      const p = normalizaPublicacao(bruta);
       document.title = `${p.titulo} · Portal CPA`;
       const cat = p.categoria_nome
         ? `<span class="etiqueta" style="background:${esc(p.categoria_cor || '#1d4ed8')}">${esc(p.categoria_nome)}</span>`
@@ -110,22 +135,22 @@
         <div class="conteudo">${mdParaHtml(p.conteudo)}</div>
         ${anexos}`;
 
-      if (p.categoria_id) {
-        const { data: rel } = await sb
-          .from('publicacoes')
-          .select(SEL_PUB)
-          .eq('publicado', true)
-          .eq('categoria_id', p.categoria_id)
-          .neq('id', p.id)
-          .order('publicado_em', { ascending: false })
-          .limit(4);
-        if (rel?.length) {
-          document.getElementById('sec-relacionadas').style.display = '';
-          document.getElementById('relacionadas').innerHTML = rel
-            .map((x) => cardPublicacao(normalizaPublicacao(x)))
-            .join('');
-        }
+      if (relacionadas.length) {
+        document.getElementById('sec-relacionadas').style.display = '';
+        document.getElementById('relacionadas').innerHTML = relacionadas
+          .map((x) => cardPublicacao(normalizaPublicacao(x)))
+          .join('');
+      } else {
+        document.getElementById('sec-relacionadas').style.display = 'none';
       }
+    }
+
+    if (id) {
+      comCache(`pub:${id}`, buscaPub, renderPub).catch(() => {
+        artigo.innerHTML = '<p class="vazio">Não foi possível carregar a publicação. Verifique sua conexão e recarregue a página.</p>';
+      });
+    } else {
+      renderPub({ p: null, relacionadas: [] });
     }
   </script>
 </body>

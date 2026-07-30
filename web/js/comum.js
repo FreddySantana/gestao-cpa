@@ -135,10 +135,10 @@ export function cardPublicacao(p, grande = false) {
     : '';
   return `
     <article class="card${grande ? ' destaque-grande' : ''}">
-      <a href="/publicacao.html?id=${p.id}">${capa}</a>
+      <a href="/publicacao?id=${p.id}">${capa}</a>
       <div class="corpo">
         <div>${cat}</div>
-        <h3><a href="/publicacao.html?id=${p.id}">${esc(p.titulo)}</a></h3>
+        <h3><a href="/publicacao?id=${p.id}">${esc(p.titulo)}</a></h3>
         <p class="resumo">${esc(p.resumo)}</p>
         <div class="meta">${fmtData(p.publicado_em)}</div>
       </div>

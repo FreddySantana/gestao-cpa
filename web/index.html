@@ -11,6 +11,11 @@
   <link rel="modulepreload" href="/js/vendor/supabase-bundle.mjs">
   <link rel="modulepreload" href="/js/db.js">
   <link rel="modulepreload" href="/js/comum.js">
+  <script>
+    // Antes da primeira pintura: se já visitamos antes (cache), o slider assume o topo
+    // direto — sem o "flash" do hero azul enquanto o JavaScript carrega.
+    try { if (localStorage.getItem('cpa:home')) document.documentElement.classList.add('com-cache'); } catch (e) {}
+  </script>
 </head>
 <body>
   <header class="topo">
@@ -95,7 +100,7 @@
   </footer>
 
   <script type="module">
-    import { sb, SEL_PUB, normalizaPublicacao, urlArquivo, pegaConfig, categoriasComTotal, ativaContadorDownloads, comCache } from '/js/db.js';
+    import { sb, SEL_PUB, normalizaPublicacao, urlArquivo, pegaConfig, categoriasComTotal, ativaContadorDownloads, comCache, exigeDados } from '/js/db.js';
     import { aplicaConfig, cardPublicacao, itemDocumento, esc, fmtData } from '/js/comum.js';
 
     let sliderTimer = null;
@@ -115,7 +120,7 @@
             ? `<span class="etiqueta" style="background:${esc(p.categoria_cor || '#1d4ed8')}">${esc(p.categoria_nome)}</span><br>`
             : '';
           return `
-            <a class="slide${p.capa ? '' : ' sem-capa'}${i === 0 ? ' ativo' : ''}"${capa} href="/publicacao.html?id=${p.id}">
+            <a class="slide${p.capa ? '' : ' sem-capa'}${i === 0 ? ' ativo' : ''}"${capa} href="/publicacao?id=${p.id}">
               <div class="slide-conteudo">
                 ${cat}
                 <h2>${esc(p.titulo)}</h2>
@@ -167,6 +172,8 @@
         document.getElementById('hero').style.display = 'none';
         montaSlider(slides);
       } else {
+        // Sem publicações: garante que o hero volta mesmo se o anti-flash o escondeu.
+        document.documentElement.classList.remove('com-cache');
         document.getElementById('hero').style.display = '';
         document.getElementById('slider').style.display = 'none';
       }
@@ -208,10 +215,10 @@
       ]);
       return {
         config,
-        destaques: (destaquesRes.data ?? []).map(normalizaPublicacao),
-        recentes: (recentesRes.data ?? []).map(normalizaPublicacao),
+        destaques: exigeDados(destaquesRes).map(normalizaPublicacao),
+        recentes: exigeDados(recentesRes).map(normalizaPublicacao),
         categorias,
-        documentos: docsRes.data ?? [],
+        documentos: exigeDados(docsRes) ?? [],
       };
     }
 

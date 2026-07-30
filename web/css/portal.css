@@ -286,6 +286,15 @@ img { max-width: 100%; }
 .sk-linha { height: 16px; margin: 8px 0; }
 .sk-titulo { height: 28px; width: 60%; margin: 12px 0; }
 
+/* Anti-flash: quando há cache da home, o hero não pisca antes do slider.
+   A classe é aplicada por um script inline antes da primeira pintura. */
+.com-cache #hero { display: none !important; }
+.com-cache #slider { display: block !important; }
+#slides:empty {
+  background: linear-gradient(100deg, #16295e 40%, #1e3575 50%, #16295e 60%);
+  animation: pulsa-skeleton 1.4s ease-in-out infinite;
+}
+
 /* ---------- Diversos ---------- */
 .vazio { color: var(--cinza); text-align: center; padding: 40px 0; font-size: 15px; }
 .paginacao { display: flex; gap: 8px; justify-content: center; padding: 28px 0; }

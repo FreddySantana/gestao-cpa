@@ -61,28 +61,42 @@
   </footer>
 
   <script type="module">
-    import { sb, pegaConfig, ativaContadorDownloads, comCache } from '/js/db.js';
+    import { sb, pegaConfig, ativaContadorDownloads, comCache, exigeDados } from '/js/db.js';
     import { aplicaConfig, itemDocumento, esc } from '/js/comum.js';
 
     comCache('config', pegaConfig, aplicaConfig);
     ativaContadorDownloads();
 
-    // Carrega tudo uma vez e filtra no navegador (o repositório é pequeno o bastante).
-    const { data } = await sb
-      .from('documentos')
-      .select('id,titulo,descricao,pasta,ano,arquivo,nome_original,mime,tamanho,downloads,criado_em')
-      .eq('publicado', true)
-      .order('pasta')
-      .order('ano', { ascending: false })
-      .order('criado_em', { ascending: false });
-    const todos = data ?? [];
-
     const selPasta = document.getElementById('filtro-pasta');
     const selAno = document.getElementById('filtro-ano');
-    selPasta.innerHTML += [...new Set(todos.map((d) => d.pasta))].sort()
-      .map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
-    selAno.innerHTML += [...new Set(todos.map((d) => d.ano).filter(Boolean))].sort((a, b) => b - a)
-      .map((a) => `<option value="${a}">${a}</option>`).join('');
+    let todos = [];
+
+    // Carrega tudo uma vez (com cache) e filtra no navegador — o repositório é pequeno o bastante.
+    function aplicaDados(docs) {
+      todos = docs;
+      const vPasta = selPasta.value;
+      const vAno = selAno.value;
+      selPasta.innerHTML = '<option value="">Todas as pastas</option>' +
+        [...new Set(todos.map((d) => d.pasta))].sort().map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+      selAno.innerHTML = '<option value="">Todos os anos</option>' +
+        [...new Set(todos.map((d) => d.ano).filter(Boolean))].sort((a, b) => b - a).map((a) => `<option value="${a}">${a}</option>`).join('');
+      selPasta.value = vPasta;
+      selAno.value = vAno;
+      carrega();
+    }
+
+    async function buscaDocs() {
+      const data = exigeDados(
+        await sb
+          .from('documentos')
+          .select('id,titulo,descricao,pasta,ano,arquivo,nome_original,mime,tamanho,downloads,criado_em')
+          .eq('publicado', true)
+          .order('pasta')
+          .order('ano', { ascending: false })
+          .order('criado_em', { ascending: false })
+      );
+      return data ?? [];
+    }
 
     function carrega() {
       const busca = document.getElementById('busca').value.trim().toLowerCase();
@@ -114,7 +128,7 @@
     });
     selPasta.addEventListener('change', carrega);
     selAno.addEventListener('change', carrega);
-    carrega();
+    comCache('documentos', buscaDocs, aplicaDados);
   </script>
 </body>
 </html>

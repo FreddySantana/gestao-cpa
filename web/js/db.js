@@ -45,27 +45,37 @@ export function cacheGrava(chave, valor) {
 
 // Busca com cache: chama render() imediatamente com o cache (se houver) e de
 // novo com os dados frescos — a menos que sejam idênticos aos do cache.
+// Se a busca falhar (rede oscilou), o cache já exibido permanece na tela.
 export async function comCache(chave, busca, render) {
   const antigo = cacheLe(chave);
   if (antigo != null) render(antigo, true);
-  const fresco = await busca();
-  cacheGrava(chave, fresco);
-  if (antigo == null || JSON.stringify(antigo) !== JSON.stringify(fresco)) render(fresco, false);
+  try {
+    const fresco = await busca();
+    cacheGrava(chave, fresco);
+    if (antigo == null || JSON.stringify(antigo) !== JSON.stringify(fresco)) render(fresco, false);
+  } catch (e) {
+    // Sem cache para segurar a tela: repassa o erro para a página tratar.
+    if (antigo == null) throw e;
+    console.warn(`Atualização de "${chave}" falhou; mantendo cache.`, e);
+  }
+}
+
+// Lança em caso de erro do PostgREST — para não confundir "falhou" com "não existe".
+export function exigeDados({ data, error }) {
+  if (error) throw new Error(error.message);
+  return data;
 }
 
 export async function pegaConfig() {
-  const { data } = await sb.from('config').select('chave,valor');
-  return Object.fromEntries((data ?? []).map((l) => [l.chave, l.valor]));
+  const data = exigeDados(await sb.from('config').select('chave,valor'));
+  return Object.fromEntries(data.map((l) => [l.chave, l.valor]));
 }
 
 export async function categoriasComTotal() {
-  const { data } = await sb
-    .from('categorias')
-    .select('*, publicacoes(count)')
-    .eq('ativa', true)
-    .order('ordem')
-    .order('nome');
-  return (data ?? []).map((c) => ({ ...c, total: c.publicacoes?.[0]?.count ?? 0 }));
+  const data = exigeDados(
+    await sb.from('categorias').select('*, publicacoes(count)').eq('ativa', true).order('ordem').order('nome')
+  );
+  return data.map((c) => ({ ...c, total: c.publicacoes?.[0]?.count ?? 0 }));
 }
 
 // Contador de downloads (dispara e segue; não bloqueia o clique).
