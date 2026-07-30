@@ -14,7 +14,7 @@
   <script>
     // Antes da primeira pintura: se já visitamos antes (cache), o slider assume o topo
     // direto — sem o "flash" do hero azul enquanto o JavaScript carrega.
-    try { if (localStorage.getItem('cpa:home')) document.documentElement.classList.add('com-cache'); } catch (e) {}
+    try { if (Object.keys(localStorage).some((k) => /^cpa:[a-z]+:home$/.test(k))) document.documentElement.classList.add('com-cache'); } catch (e) {}
   </script>
 </head>
 <body>
@@ -100,7 +100,7 @@
   </footer>
 
   <script type="module">
-    import { sb, SEL_PUB, normalizaPublicacao, urlArquivo, pegaConfig, categoriasComTotal, ativaContadorDownloads, comCache, exigeDados } from '/js/db.js';
+    import { sb, SEL_PUB, normalizaPublicacao, urlArquivo, pegaConfig, categoriasComTotal, ativaContadorDownloads, comCache, exigeDados, CAMPUS_VISIVEIS } from '/js/db.js';
     import { aplicaConfig, cardPublicacao, itemDocumento, esc, fmtData } from '/js/comum.js';
 
     let sliderTimer = null;
@@ -206,12 +206,12 @@
       const [config, destaquesRes, recentesRes, categorias, docsRes] = await Promise.all([
         pegaConfig(),
         sb.from('publicacoes').select(SEL_PUB).eq('publicado', true).eq('destaque', true)
-          .order('publicado_em', { ascending: false }).limit(5),
+          .in('campus', CAMPUS_VISIVEIS).order('publicado_em', { ascending: false }).limit(5),
         sb.from('publicacoes').select(SEL_PUB).eq('publicado', true)
-          .order('publicado_em', { ascending: false }).limit(12),
+          .in('campus', CAMPUS_VISIVEIS).order('publicado_em', { ascending: false }).limit(12),
         categoriasComTotal(),
         sb.from('documentos').select('id,titulo,pasta,ano,arquivo,nome_original,mime,tamanho,criado_em')
-          .eq('publicado', true).order('criado_em', { ascending: false }).limit(6),
+          .eq('publicado', true).in('campus', CAMPUS_VISIVEIS).order('criado_em', { ascending: false }).limit(6),
       ]);
       return {
         config,

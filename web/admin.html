@@ -58,9 +58,15 @@
             <option value="publicado">Publicadas</option>
             <option value="rascunho">Rascunhos</option>
           </select>
+          <select id="pub-filtro-campus">
+            <option value="">Todos os portais</option>
+            <option value="para">Estácio Pará</option>
+            <option value="belem">Estácio Belém</option>
+            <option value="ambos">Marcadas “Ambos”</option>
+          </select>
         </div>
         <div class="tabela-wrap"><table>
-          <thead><tr><th>Título</th><th>Categoria</th><th>Situação</th><th>Publicada em</th><th>Views</th><th></th></tr></thead>
+          <thead><tr><th>Título</th><th>Portal</th><th>Categoria</th><th>Situação</th><th>Publicada em</th><th>Views</th><th></th></tr></thead>
           <tbody id="pub-lista"></tbody>
         </table></div>
         <p class="vazio" id="pub-vazio" style="display:none">Nenhuma publicação. Clique em “+ Nova publicação”.</p>
@@ -82,6 +88,14 @@
                 <datalist id="lista-pastas"></datalist>
               </div>
               <div><label>Ano</label><input type="number" id="doc-ano" min="2000" max="2100" placeholder="2026"></div>
+              <div>
+                <label>Publicar em</label>
+                <select id="doc-campus">
+                  <option value="ambos">Ambos os portais</option>
+                  <option value="para">Só Estácio Pará</option>
+                  <option value="belem">Só Estácio Belém</option>
+                </select>
+              </div>
             </div>
             <label>Descrição (opcional)</label>
             <input type="text" id="doc-descricao">
@@ -93,7 +107,7 @@
           <input type="search" id="doc-busca" placeholder="Buscar documento…">
         </div>
         <div class="tabela-wrap"><table>
-          <thead><tr><th>Título</th><th>Pasta</th><th>Ano</th><th>Tamanho</th><th>Downloads</th><th>Visível</th><th></th></tr></thead>
+          <thead><tr><th>Título</th><th>Portal</th><th>Pasta</th><th>Ano</th><th>Tamanho</th><th>Downloads</th><th>Visível</th><th></th></tr></thead>
           <tbody id="doc-lista"></tbody>
         </table></div>
         <p class="vazio" id="doc-vazio" style="display:none">Nenhum documento enviado ainda.</p>
@@ -129,6 +143,13 @@
               </div>
               <div><label>E-mail (opcional)</label><input type="email" id="membro-email"></div>
               <div><label>Ordem de exibição</label><input type="number" id="membro-ordem" value="0"></div>
+              <div>
+                <label>Comissão do campus</label>
+                <select id="membro-campus">
+                  <option value="para">Estácio Pará</option>
+                  <option value="belem">Estácio Belém</option>
+                </select>
+              </div>
             </div>
             <label>Apresentação (aparece no card do portal)</label>
             <textarea id="membro-bio" style="min-height:70px" placeholder="Ex.: Professora do curso de Engenharia, atua na CPA desde 2024 representando os docentes."></textarea>
@@ -149,7 +170,7 @@
           </form>
         </div>
         <div class="tabela-wrap"><table>
-          <thead><tr><th></th><th>Nome</th><th>Função</th><th>Segmento</th><th>E-mail</th><th>Ordem</th><th>Ativo</th><th></th></tr></thead>
+          <thead><tr><th></th><th>Nome</th><th>Comissão</th><th>Função</th><th>Segmento</th><th>E-mail</th><th>Ordem</th><th>Ativo</th><th></th></tr></thead>
           <tbody id="membro-lista"></tbody>
         </table></div>
         <p class="vazio" id="membro-vazio" style="display:none">Nenhum membro cadastrado.</p>
@@ -175,7 +196,15 @@
 
       <!-- Configurações -->
       <section class="aba" id="aba-config">
-        <div class="cabeca-aba"><h2>Configurações do portal</h2></div>
+        <div class="cabeca-aba">
+          <h2>Configurações do portal</h2>
+          <div class="acoes">
+            <select id="cfg-site">
+              <option value="para">Portal Estácio Pará</option>
+              <option value="belem">Portal Estácio Belém</option>
+            </select>
+          </div>
+        </div>
         <div class="cartao">
           <form id="form-config">
             <div class="linha">
@@ -224,6 +253,14 @@
         <input type="text" id="pub-titulo" required>
         <div class="linha">
           <div><label>Categoria</label><select id="pub-categoria"></select></div>
+          <div>
+            <label>Publicar em</label>
+            <select id="pub-campus">
+              <option value="ambos">Ambos os portais</option>
+              <option value="para">Só Estácio Pará</option>
+              <option value="belem">Só Estácio Belém</option>
+            </select>
+          </div>
         </div>
         <label>Resumo (aparece nos cards e na busca)</label>
         <textarea id="pub-resumo" style="min-height:64px"></textarea>

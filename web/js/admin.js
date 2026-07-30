@@ -15,6 +15,13 @@ function agora() {
   return new Date().toISOString();
 }
 
+const NOME_CAMPUS = { para: 'Pará', belem: 'Belém', ambos: 'Ambos' };
+const COR_CAMPUS = { para: '#1743c7', belem: '#0f766e', ambos: '#5b6478' };
+
+function seloCampus(campus) {
+  return `<span class="selo cat" style="background:${COR_CAMPUS[campus] ?? '#5b6478'}">${NOME_CAMPUS[campus] ?? campus}</span>`;
+}
+
 // Sobe um arquivo para o bucket "cpa" e devolve o caminho salvo no banco.
 async function envia(pasta, file) {
   const ext = (file.name.match(/\.[a-z0-9]+$/i)?.[0] ?? '').toLowerCase().slice(0, 10);
@@ -170,7 +177,7 @@ let pubAtual = null; // linha carregada no modal (capa, publicado_em…)
 async function carregaPublicacoes() {
   let q = sb
     .from('publicacoes')
-    .select('id,titulo,destaque,publicado,publicado_em,visualizacoes,categorias(nome,cor)')
+    .select('id,titulo,campus,destaque,publicado,publicado_em,visualizacoes,categorias(nome,cor)')
     .order('criado_em', { ascending: false });
   const busca = $('pub-busca').value.trim().replace(/[,()]/g, ' ').trim();
   if (busca) q = q.or(`titulo.ilike.%${busca}%,resumo.ilike.%${busca}%`);
@@ -179,6 +186,8 @@ async function carregaPublicacoes() {
   const situacao = $('pub-filtro-situacao').value;
   if (situacao === 'publicado') q = q.eq('publicado', true);
   if (situacao === 'rascunho') q = q.eq('publicado', false);
+  const campus = $('pub-filtro-campus').value;
+  if (campus) q = q.eq('campus', campus);
 
   const { data } = await q;
   const linhas = data ?? [];
@@ -187,6 +196,7 @@ async function carregaPublicacoes() {
     .map(
       (p) => `<tr>
         <td><strong>${esc(p.titulo)}</strong>${p.destaque ? ' <span class="selo destaque">Destaque</span>' : ''}</td>
+        <td>${seloCampus(p.campus)}</td>
         <td>${p.categorias ? `<span class="selo cat" style="background:${esc(p.categorias.cor)}">${esc(p.categorias.nome)}</span>` : '—'}</td>
         <td>${p.publicado ? '<span class="selo pub">Publicada</span>' : '<span class="selo rasc">Rascunho</span>'}</td>
         <td>${fmtData(p.publicado_em) || '—'}</td>
@@ -217,7 +227,7 @@ async function carregaPublicacoes() {
   );
 }
 
-['pub-busca', 'pub-filtro-categoria', 'pub-filtro-situacao'].forEach((id) => {
+['pub-busca', 'pub-filtro-categoria', 'pub-filtro-situacao', 'pub-filtro-campus'].forEach((id) => {
   let timer;
   $(id).addEventListener('input', () => {
     clearTimeout(timer);
@@ -231,6 +241,7 @@ async function abreModalPublicacao(id = null) {
   fechaPrevia();
   $('form-pub').reset();
   $('pub-publicado').checked = true;
+  $('pub-campus').value = 'ambos';
   $('pub-capa-previa').style.display = 'none';
   $('pub-remover-capa-wrap').style.display = 'none';
   $('pub-anexos-atuais').innerHTML = '';
@@ -245,6 +256,7 @@ async function abreModalPublicacao(id = null) {
       .single();
     pubAtual = p;
     $('pub-titulo').value = p.titulo;
+    $('pub-campus').value = p.campus ?? 'ambos';
     $('pub-categoria').value = p.categoria_id ?? '';
     $('pub-resumo').value = p.resumo;
     $('pub-conteudo').value = p.conteudo;
@@ -335,6 +347,7 @@ $('form-pub').addEventListener('submit', async (e) => {
       resumo: $('pub-resumo').value.trim(),
       conteudo: $('pub-conteudo').value,
       categoria_id: $('pub-categoria').value ? Number($('pub-categoria').value) : null,
+      campus: $('pub-campus').value,
       destaque: $('pub-destaque').checked,
       publicado,
     };
@@ -397,6 +410,7 @@ async function carregaDocumentos() {
     .map(
       (d) => `<tr>
         <td><strong>${esc(d.titulo)}</strong><br><small style="color:var(--cinza)">${esc(d.nome_original)}</small></td>
+        <td>${seloCampus(d.campus)}</td>
         <td>${esc(d.pasta)}</td>
         <td>${d.ano ?? '—'}</td>
         <td>${fmtTamanho(d.tamanho)}</td>
@@ -432,6 +446,8 @@ function editarDocumento(d) {
   const pasta = prompt('Pasta:', d.pasta) ?? d.pasta;
   const ano = prompt('Ano (vazio = sem ano):', d.ano ?? '') ?? d.ano;
   const descricao = prompt('Descrição:', d.descricao) ?? d.descricao;
+  let campus = (prompt('Portal (para, belem ou ambos):', d.campus) ?? d.campus).trim().toLowerCase();
+  if (!['para', 'belem', 'ambos'].includes(campus)) campus = d.campus;
   const publicado = confirm('Visível no portal? (OK = sim, Cancelar = não)');
   sb.from('documentos')
     .update({
@@ -439,6 +455,7 @@ function editarDocumento(d) {
       pasta: pasta.trim() || 'Geral',
       ano: ano ? Number(ano) : null,
       descricao: String(descricao).trim(),
+      campus,
       publicado,
     })
     .eq('id', d.id)
@@ -459,6 +476,7 @@ $('form-doc').addEventListener('submit', async (e) => {
       descricao: $('doc-descricao').value.trim(),
       pasta: $('doc-pasta').value.trim() || 'Geral',
       ano: $('doc-ano').value ? Number($('doc-ano').value) : null,
+      campus: $('doc-campus').value,
       arquivo: caminho,
       nome_original: arquivo.name,
       mime: arquivo.type,
@@ -498,6 +516,7 @@ async function carregaMembros() {
               '</span>'
         }</td>
         <td><strong>${esc(m.nome)}</strong>${m.bio ? `<br><small style="color:var(--cinza)">${esc(m.bio.slice(0, 60))}${m.bio.length > 60 ? '…' : ''}</small>` : ''}</td>
+        <td>${seloCampus(m.campus)}</td>
         <td>${esc(m.funcao)}</td>
         <td>${esc(m.segmento)}</td>
         <td>${esc(m.email ?? '—')}</td>
@@ -543,6 +562,7 @@ function editarMembro(m) {
   membroEditando = m.id;
   membroAtual = m;
   $('membro-nome').value = m.nome;
+  $('membro-campus').value = m.campus ?? 'para';
   $('membro-funcao').value = m.funcao;
   $('membro-segmento').value = m.segmento;
   $('membro-email').value = m.email ?? '';
@@ -573,6 +593,7 @@ $('form-membro').addEventListener('submit', async (e) => {
   try {
     const dados = {
       nome: $('membro-nome').value.trim(),
+      campus: $('membro-campus').value,
       funcao: $('membro-funcao').value,
       segmento: $('membro-segmento').value,
       email: $('membro-email').value.trim() || null,
@@ -611,17 +632,21 @@ $('form-membro').addEventListener('submit', async (e) => {
 const CHAVES_CFG = ['nome_portal', 'subtitulo', 'texto_sobre', 'link_pesquisa', 'texto_pesquisa', 'email_contato'];
 
 async function carregaConfig() {
-  const { data } = await sb.from('config').select('chave,valor');
+  const site = $('cfg-site').value;
+  const { data } = await sb.from('config').select('chave,valor').eq('site', site);
   const cfg = Object.fromEntries((data ?? []).map((l) => [l.chave, l.valor]));
   for (const chave of CHAVES_CFG) $(`cfg-${chave}`).value = cfg[chave] ?? '';
 }
 
+$('cfg-site').addEventListener('change', carregaConfig);
+
 $('form-config').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const linhas = CHAVES_CFG.map((chave) => ({ chave, valor: $(`cfg-${chave}`).value }));
+  const site = $('cfg-site').value;
+  const linhas = CHAVES_CFG.map((chave) => ({ site, chave, valor: $(`cfg-${chave}`).value }));
   const { error } = await sb.from('config').upsert(linhas);
   if (error) return msg('cfg-msg', error.message, 'erro');
-  msg('cfg-msg', 'Configurações salvas!');
+  msg('cfg-msg', `Configurações do portal ${site === 'para' ? 'Estácio Pará' : 'Estácio Belém'} salvas!`);
 });
 
 $('form-senha').addEventListener('submit', async (e) => {

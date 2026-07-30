@@ -1,9 +1,28 @@
 // Cliente Supabase + acesso a dados compartilhado entre as páginas.
 // supabase-js hospedado localmente (web/js/vendor) para evitar a viagem extra ao CDN.
 import { createClient } from './vendor/supabase-bundle.mjs';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, CAMPUS_POR_DOMINIO, CAMPUS_PADRAO } from './config.js';
 
 export const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Qual portal este acesso representa: o domínio decide; ?campus=belem força
+// (fica na aba, via sessionStorage — útil para testar antes dos domínios).
+function detectaCampus() {
+  try {
+    const forcado = new URLSearchParams(location.search).get('campus');
+    if (forcado === 'para' || forcado === 'belem') {
+      sessionStorage.setItem('campus-forcado', forcado);
+      return forcado;
+    }
+    return sessionStorage.getItem('campus-forcado') || CAMPUS_POR_DOMINIO[location.hostname] || CAMPUS_PADRAO;
+  } catch {
+    return CAMPUS_PADRAO;
+  }
+}
+export const CAMPUS = detectaCampus();
+
+// Filtro padrão de conteúdo: o campus deste portal + o que vale para ambos.
+export const CAMPUS_VISIVEIS = [CAMPUS, 'ambos'];
 
 // Campos padrão de publicação com a categoria embutida.
 export const SEL_PUB =
@@ -29,7 +48,7 @@ export function normalizaPublicacao(p) {
    e atualiza por baixo quando o banco responder. */
 export function cacheLe(chave) {
   try {
-    return JSON.parse(localStorage.getItem(`cpa:${chave}`));
+    return JSON.parse(localStorage.getItem(`cpa:${CAMPUS}:${chave}`));
   } catch {
     return null;
   }
@@ -37,7 +56,7 @@ export function cacheLe(chave) {
 
 export function cacheGrava(chave, valor) {
   try {
-    localStorage.setItem(`cpa:${chave}`, JSON.stringify(valor));
+    localStorage.setItem(`cpa:${CAMPUS}:${chave}`, JSON.stringify(valor));
   } catch {
     /* armazenamento cheio/indisponível: segue sem cache */
   }
@@ -67,13 +86,19 @@ export function exigeDados({ data, error }) {
 }
 
 export async function pegaConfig() {
-  const data = exigeDados(await sb.from('config').select('chave,valor'));
+  const data = exigeDados(await sb.from('config').select('chave,valor').eq('site', CAMPUS));
   return Object.fromEntries(data.map((l) => [l.chave, l.valor]));
 }
 
 export async function categoriasComTotal() {
   const data = exigeDados(
-    await sb.from('categorias').select('*, publicacoes(count)').eq('ativa', true).order('ordem').order('nome')
+    await sb
+      .from('categorias')
+      .select('*, publicacoes(count)')
+      .eq('ativa', true)
+      .in('publicacoes.campus', CAMPUS_VISIVEIS)
+      .order('ordem')
+      .order('nome')
   );
   return data.map((c) => ({ ...c, total: c.publicacoes?.[0]?.count ?? 0 }));
 }

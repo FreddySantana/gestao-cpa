@@ -58,7 +58,7 @@
   </footer>
 
   <script type="module">
-    import { sb, SEL_PUB, normalizaPublicacao, pegaConfig, categoriasComTotal, comCache, exigeDados } from '/js/db.js';
+    import { sb, SEL_PUB, normalizaPublicacao, pegaConfig, categoriasComTotal, comCache, exigeDados, CAMPUS_VISIVEIS } from '/js/db.js';
     import { aplicaConfig, cardPublicacao, esc } from '/js/comum.js';
 
     const params = new URLSearchParams(location.search);
@@ -92,7 +92,7 @@
     }
 
     async function buscaLista() {
-      let q = sb.from('publicacoes').select(SEL_PUB, { count: 'exact' }).eq('publicado', true);
+      let q = sb.from('publicacoes').select(SEL_PUB, { count: 'exact' }).eq('publicado', true).in('campus', CAMPUS_VISIVEIS);
       if (categoria) q = q.eq('categoria_id', Number(categoria));
       if (busca) {
         // Vírgulas e parênteses têm significado no filtro "or" do PostgREST.

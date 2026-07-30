@@ -63,7 +63,7 @@
   </footer>
 
   <script type="module">
-    import { sb, SEL_PUB, normalizaPublicacao, urlArquivo, pegaConfig, comCache, exigeDados } from '/js/db.js';
+    import { sb, SEL_PUB, normalizaPublicacao, urlArquivo, pegaConfig, comCache, exigeDados, CAMPUS_VISIVEIS } from '/js/db.js';
     import { aplicaConfig, cardPublicacao, mdParaHtml, esc, fmtData, fmtTamanho, classeIcone } from '/js/comum.js';
 
     comCache('config', pegaConfig, aplicaConfig);
@@ -81,6 +81,7 @@
           .select('*, categorias(nome,cor), anexos(id,arquivo,nome_original,mime,tamanho)')
           .eq('id', id)
           .eq('publicado', true)
+          .in('campus', CAMPUS_VISIVEIS)
           .maybeSingle()
       );
       if (!data) return { p: null, relacionadas: [] };
@@ -91,6 +92,7 @@
             .from('publicacoes')
             .select(SEL_PUB)
             .eq('publicado', true)
+            .in('campus', CAMPUS_VISIVEIS)
             .eq('categoria_id', data.categoria_id)
             .neq('id', id)
             .order('publicado_em', { ascending: false })
