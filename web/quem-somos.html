@@ -10,6 +10,24 @@
   <link rel="modulepreload" href="/js/vendor/supabase-bundle.mjs">
   <link rel="modulepreload" href="/js/db.js">
   <link rel="modulepreload" href="/js/comum.js">
+  <script>
+    // Aplica a marca do campus (descoberta pelo domínio) antes da primeira pintura.
+    (function (secao) {
+      try {
+        var mapa = { 'para.cpaestacio.com.br': 'para', 'belem.cpaestacio.com.br': 'belem' };
+        var forcado = new URLSearchParams(location.search).get('campus');
+        if (forcado === 'para' || forcado === 'belem') sessionStorage.setItem('campus-forcado', forcado);
+        var campus = sessionStorage.getItem('campus-forcado') || mapa[location.hostname] || 'para';
+        var nomes = {
+          para: ['Portal CPA · Estácio Pará', 'Comissão Própria de Avaliação · Estácio Pará'],
+          belem: ['Portal CPA · Estácio Belém', 'Comissão Própria de Avaliação · Centro Universitário Estácio Belém'],
+        }[campus];
+        document.documentElement.dataset.campus = campus;
+        window.__CPA_SUB = nomes[1];
+        document.title = secao ? secao + ' · ' + nomes[0] : nomes[0];
+      } catch (e) {}
+    })('Quem Somos');
+  </script>
 </head>
 <body>
   <header class="topo">
@@ -36,6 +54,7 @@
       </div>
     </div>
   </header>
+  <script>if (window.__CPA_SUB) document.querySelector('[data-config="subtitulo"]').textContent = window.__CPA_SUB;</script>
 
   <section class="secao container">
     <div class="secao-cabeca"><h2>Quem somos</h2></div>

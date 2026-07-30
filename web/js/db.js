@@ -7,8 +7,12 @@ export const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Qual portal este acesso representa: o domínio decide; ?campus=belem força
 // (fica na aba, via sessionStorage — útil para testar antes dos domínios).
+// Nas páginas públicas um script inline já resolveu isso antes da primeira
+// pintura e deixou o resultado no <html data-campus>; aqui só reaproveitamos.
 function detectaCampus() {
   try {
+    const jaResolvido = document.documentElement.dataset.campus;
+    if (jaResolvido === 'para' || jaResolvido === 'belem') return jaResolvido;
     const forcado = new URLSearchParams(location.search).get('campus');
     if (forcado === 'para' || forcado === 'belem') {
       sessionStorage.setItem('campus-forcado', forcado);
