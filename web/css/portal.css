@@ -36,17 +36,21 @@ img { max-width: 100%; }
 .topo-inner {
   display: flex;
   align-items: center;
-  gap: 24px;
-  height: 64px;
+  gap: 16px;
+  min-height: 64px;
+  padding: 10px 0;
 }
-.marca { display: flex; align-items: center; gap: 10px; color: var(--tinta); font-weight: 700; }
+.marca { display: flex; align-items: center; gap: 10px; color: var(--tinta); font-weight: 700; min-width: 0; }
 .marca .logo {
-  width: 38px; height: 38px; border-radius: 10px;
+  width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
   background: linear-gradient(135deg, var(--azul), var(--azul-escuro));
   color: #fff; display: grid; place-items: center;
   font-size: 13px; font-weight: 800; letter-spacing: 0.5px;
 }
 .marca small { display: block; font-size: 11px; font-weight: 500; color: var(--cinza); line-height: 1.2; }
+.marca-nome { font-size: 15px; line-height: 1.25; }
+/* Versão curta do nome, usada só em telas estreitas (ver media query no fim). */
+.marca-nome-curto { display: none; font-size: 15px; }
 .menu { display: flex; gap: 4px; margin-left: auto; align-items: center; }
 .menu a {
   color: var(--cinza); font-size: 14.5px; font-weight: 600;
@@ -149,7 +153,8 @@ img { max-width: 100%; }
 }
 
 /* ---------- Seções ---------- */
-.secao { padding: 44px 0 8px; }
+/* Só vertical: o padding lateral vem do .container e não pode ser zerado aqui. */
+.secao { padding-top: 44px; padding-bottom: 8px; }
 .secao-cabeca { display: flex; align-items: baseline; gap: 16px; margin-bottom: 20px; }
 .secao-cabeca h2 { font-size: 22px; }
 .secao-cabeca a { margin-left: auto; font-size: 14px; font-weight: 600; }
@@ -310,12 +315,55 @@ img { max-width: 100%; }
 .rodape a { color: #fff; font-weight: 600; }
 .rodape .admin-link { margin-left: auto; opacity: 0.7; font-size: 13px; }
 
-@media (max-width: 700px) {
-  .menu { display: none; }
-  .topo-inner { justify-content: space-between; }
-  .menu-mobile { display: block !important; }
-}
 .menu-mobile { display: none; margin-left: auto; }
 .menu-mobile select {
-  border: 1px solid var(--borda); border-radius: 8px; padding: 8px; font-size: 14px; background: var(--branco);
+  border: 1px solid var(--borda); border-radius: 8px; padding: 8px; font-size: 14px;
+  background: var(--branco); font-family: inherit; max-width: 120px;
+}
+
+/* ---------- Celular ---------- */
+@media (max-width: 700px) {
+  .menu { display: none; }
+  .topo-inner { justify-content: space-between; gap: 12px; }
+  .menu-mobile { display: block !important; }
+
+  /* O nome completo do campus não cabe: entra a versão curta. */
+  .marca-nome { display: none; }
+  .marca-nome-curto { display: block; }
+
+  .secao { padding-top: 32px; }
+  .secao-cabeca { flex-wrap: wrap; gap: 6px 14px; }
+  .secao-cabeca h2 { font-size: 20px; }
+  .secao-cabeca a { margin-left: 0; }
+
+  .hero { padding: 40px 0 44px; }
+  .hero .acoes a { flex: 1; text-align: center; padding: 12px 16px; }
+
+  .banner-pesquisa { padding: 18px 20px; gap: 12px; }
+  .banner-pesquisa a { margin-left: 0; width: 100%; text-align: center; }
+
+  .slides { height: clamp(320px, 75vw, 400px); }
+  .slide-conteudo { padding: 0 20px 40px; }
+
+  /* Chips e filtros com rolagem lateral em vez de empilhar um por linha. */
+  .chips {
+    flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px;
+    scrollbar-width: none; -ms-overflow-style: none;
+  }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: 0 0 auto; font-size: 13px; padding: 6px 12px; }
+
+  .filtros input, .filtros select { width: 100%; min-width: 0; }
+
+  /* Documento: nome em cima, botão de baixar ocupando a largura. */
+  .doc { flex-wrap: wrap; padding: 14px 16px; }
+  .doc .info { flex: 1 1 60%; }
+  .doc .baixar { flex: 1 0 100%; text-align: center; padding: 10px; }
+
+  .membros { grid-template-columns: 1fr; }
+  .membro .bio { text-align: center; }
+
+  .rodape { margin-top: 40px; padding: 28px 0; }
+  .rodape .container { gap: 12px 20px; }
+  .rodape .admin-link { margin-left: 0; flex-basis: 100%; }
 }

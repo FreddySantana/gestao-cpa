@@ -172,9 +172,26 @@ input[type="file"] { font-size: 13.5px; }
 
 @media (max-width: 800px) {
   .painel.visivel { flex-direction: column; }
-  .lateral { width: 100%; flex-direction: row; flex-wrap: wrap; align-items: center; }
-  .lateral .marca { padding: 8px; }
-  .lateral button { width: auto; }
-  .lateral .rodape-lateral { margin: 0 0 0 auto; }
+  .lateral {
+    width: 100%; flex-direction: row; flex-wrap: wrap; align-items: center;
+    gap: 4px; padding: 10px 12px;
+  }
+  .lateral .marca { padding: 0; flex-basis: 100%; margin-bottom: 6px; }
+  .lateral button { width: auto; margin: 0; padding: 8px 12px; font-size: 14px; }
+  .lateral .rodape-lateral {
+    margin: 0; flex-basis: 100%; display: flex; gap: 16px; align-items: center;
+    padding: 8px 0 0; border-top: 1px solid rgba(255,255,255,0.12);
+  }
+  .lateral .rodape-lateral a { margin-top: 0; }
   .conteudo { padding: 20px 16px; }
+
+  /* Tabela rola na horizontal em vez de espremer as colunas. */
+  .tabela-wrap table { min-width: 700px; }
+
+  .cabeca-aba .acoes { margin-left: 0; width: 100%; }
+  .cabeca-aba .acoes .btn, .cabeca-aba .acoes select { width: 100%; }
+  .filtros-admin { flex-direction: column; }
+  .filtros-admin input[type="search"], .filtros-admin select { width: 100%; min-width: 0; }
+  .linha { flex-direction: column; gap: 0; }
+  .modal { padding: 20px 16px; }
 }
