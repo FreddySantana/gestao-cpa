@@ -14,25 +14,34 @@ A versão local (Express + SQLite, pasta `public/`) continua funcionando de form
 4. **Settings → API**: copie a `Project URL` e a `anon public key`.
 5. Cole as duas em `web/js/config.js`.
 
-## 2. Netlify (uma vez só)
+## 2. Cloudflare Pages (uma vez só)
 
-Opção A — arrastar e soltar (mais rápido):
-1. https://app.netlify.com → "Add new site" → "Deploy manually".
-2. Arraste a pasta `web/` inteira. Pronto, sai uma URL `*.netlify.app`.
+> **Por que Cloudflare e não Netlify**: a rede da Estácio bloqueia o Netlify por IP
+> (categoria "hospedagem gratuita"), inclusive através do domínio próprio — o CNAME
+> leva ao mesmo servidor. A Cloudflare passa pelo filtro, e o Supabase já roda nela.
 
-Opção B — via git (atualiza sozinho a cada push):
-1. Crie um repositório git em `gestao-cpa/` e suba para o GitHub.
-2. No Netlify: "Import an existing project" → aponte para o repositório.
-   O `netlify.toml` já diz que a pasta publicada é `web/`.
+1. https://dash.cloudflare.com → **Workers & Pages** → **Create** → aba **Pages**
+   → **Connect to Git** → autorize o GitHub e escolha `gestao-cpa`.
+2. Configuração do build (a pasta `web/` já é estática, não há build):
+   - Framework preset: **None**
+   - Build command: **deixe vazio**
+   - Build output directory: **`web`**
+3. **Save and Deploy**. Sai uma URL `*.pages.dev` — já dá para testar.
+4. **Custom domains** → adicione `para.cpaestacio.com.br` e `belem.cpaestacio.com.br`.
+5. No Registro.br (DNS → Editar Zona), troque o destino dos dois CNAMEs de
+   `gestao-cpa.netlify.app.` para `<nome-do-projeto>.pages.dev.` e salve.
+
+O arquivo `web/_headers` cuida dos cabeçalhos de segurança (equivalente ao antigo
+`netlify.toml`, que fica no repositório apenas como histórico).
 
 ## 3. Atualizações do dia a dia
 
 - Conteúdo (notícias, documentos, membros): tudo pelo `/admin.html` do site online — não precisa redeployar.
-- Código/layout: re-arraste a pasta `web/` (opção A) ou dê push (opção B).
+- Código/layout: `git push` — a Cloudflare publica sozinha em ~1 min.
 
 ## Custos e limites (plano gratuito)
 
-- Netlify: 100 GB de banda/mês — muito além do necessário.
+- Cloudflare Pages: builds e banda ilimitados para site estático.
 - Supabase: 500 MB de banco + 1 GB de storage + 50k usuários ativos.
   O storage é o limite a observar se subir muitos PDFs pesados.
 - Projeto Supabase gratuito "pausa" após ~1 semana sem acesso; o primeiro acesso
