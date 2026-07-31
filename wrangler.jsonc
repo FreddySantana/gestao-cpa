@@ -1,0 +1,10 @@
+{
+  // Site estático servido pela Cloudflare (Workers com static assets).
+  // A pasta `web/` é publicada como está — não há build.
+  // Deploy: `npx wrangler deploy` (é o que a Cloudflare roda a cada push).
+  "name": "gestao-cpa",
+  "compatibility_date": "2026-07-30",
+  "assets": {
+    "directory": "./web"
+  }
+}
