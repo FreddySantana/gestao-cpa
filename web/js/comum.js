@@ -124,6 +124,21 @@ export function aplicaConfig(config) {
       btnPesquisa.style.display = 'none';
     }
   }
+  // Contatos do rodapé: só aparecem quando preenchidos nas configurações.
+  aplicaContato('rodape-biblioteca', 'Biblioteca', config.email_biblioteca);
+  aplicaContato('rodape-contato', 'Contato', config.email_contato);
+}
+
+function aplicaContato(id, rotulo, email) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (email) {
+    el.href = `mailto:${email}`;
+    el.textContent = `${rotulo}: ${email}`;
+    el.style.display = '';
+  } else {
+    el.style.display = 'none';
+  }
 }
 
 export function cardPublicacao(p, grande = false) {

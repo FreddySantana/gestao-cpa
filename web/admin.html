@@ -221,8 +221,18 @@
               </div>
               <div><label>Nome da pesquisa</label><input type="text" id="cfg-texto_pesquisa"></div>
             </div>
-            <label>E-mail de contato da CPA</label>
-            <input type="email" id="cfg-email_contato">
+            <div class="linha">
+              <div>
+                <label>E-mail de contato da CPA</label>
+                <input type="email" id="cfg-email_contato">
+                <p class="dica">Aparece no rodapé e na página “Quem Somos”. Deixe vazio para esconder.</p>
+              </div>
+              <div>
+                <label>E-mail da biblioteca</label>
+                <input type="email" id="cfg-email_biblioteca" placeholder="biblioteca.fap@estacio.br">
+                <p class="dica">Aparece no rodapé do portal. Deixe vazio para esconder.</p>
+              </div>
+            </div>
             <button class="btn" style="margin-top:18px" type="submit">Salvar configurações</button>
             <div class="msg" id="cfg-msg"></div>
           </form>

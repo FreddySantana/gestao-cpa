@@ -629,7 +629,15 @@ $('form-membro').addEventListener('submit', async (e) => {
 });
 
 /* ---------- Configurações ---------- */
-const CHAVES_CFG = ['nome_portal', 'subtitulo', 'texto_sobre', 'link_pesquisa', 'texto_pesquisa', 'email_contato'];
+const CHAVES_CFG = [
+  'nome_portal',
+  'subtitulo',
+  'texto_sobre',
+  'link_pesquisa',
+  'texto_pesquisa',
+  'email_contato',
+  'email_biblioteca',
+];
 
 async function carregaConfig() {
   const site = $('cfg-site').value;
