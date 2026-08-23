@@ -247,6 +247,12 @@ img { max-width: 100%; }
 .conteudo h3 { font-size: 18px; margin: 22px 0 10px; }
 .conteudo ul, .conteudo ol { margin: 0 0 16px 24px; }
 .conteudo blockquote { border-left: 4px solid var(--azul); padding: 6px 18px; background: var(--azul-claro); border-radius: 0 10px 10px 0; margin: 0 0 16px; }
+/* Imagens e gráficos inseridos no texto com ![descrição](url) */
+.conteudo-img {
+  display: block; max-width: 100%; height: auto;
+  margin: 22px 0; border: 1px solid var(--borda); border-radius: 12px;
+  background: var(--branco);
+}
 
 /* ---------- Membros ---------- */
 .membros { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }

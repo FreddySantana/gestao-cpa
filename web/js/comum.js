@@ -29,15 +29,21 @@ export function classeIcone(mime = '', nome = '') {
 }
 
 // Converte o texto das publicações (markdown simplificado) em HTML seguro.
-// Suporta: ## títulos, **negrito**, *itálico*, [link](url), listas com "- ", > citação.
+// Suporta: ## títulos, **negrito**, *itálico*, [link](url), ![descrição](url) para
+// imagens, listas com "- " e > citação.
 export function mdParaHtml(texto) {
   const linhas = esc(texto).split(/\r?\n/);
   const saida = [];
   let lista = null; // 'ul' | 'ol'
   let paragrafo = [];
 
+  // A imagem vem antes do link: senão "![x](url)" casaria como link e sobraria o "!".
   const inline = (s) =>
     s
+      .replace(
+        /!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g,
+        '<img class="conteudo-img" src="$2" alt="$1" loading="lazy">'
+      )
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
       .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')

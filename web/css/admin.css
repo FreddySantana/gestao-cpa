@@ -162,6 +162,10 @@ input[type="file"] { font-size: 13.5px; }
   border-left: 4px solid var(--azul); padding: 6px 16px; background: var(--azul-claro);
   border-radius: 0 10px 10px 0; margin: 0 0 14px;
 }
+.previa-conteudo .conteudo-img {
+  display: block; max-width: 100%; height: auto;
+  margin: 18px 0; border: 1px solid var(--borda); border-radius: 10px;
+}
 .previa-anexos { border-top: 1px dashed var(--borda); margin-top: 18px; padding-top: 12px; font-size: 13.5px; }
 .previa-anexos strong { display: block; margin-bottom: 6px; }
 .previa-anexos span { display: block; color: var(--cinza); padding: 2px 0; }
