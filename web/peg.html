@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Links do PEG · Programa de Excelência em Gestão</title>
+  <link rel="icon" href="/img/peg-logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://nzsjbakghksbuvammgtp.supabase.co" crossorigin>
+  <link rel="modulepreload" href="/js/config.js">
+  <link rel="modulepreload" href="/js/vendor/supabase-bundle.mjs">
+  <link rel="modulepreload" href="/js/db.js">
+  <link rel="modulepreload" href="/js/comum.js">
+  <style>
+    /* Identidade do Manual PEG 2026: gradiente azul → verde, losangos e Montserrat.
+       O gradiente do topo usa os tons da marca escurecidos para o texto branco
+       manter contraste legível; os tons originais ficam nos detalhes. */
+    :root {
+      --peg-azul: #44a9e1;
+      --peg-verde: #06bb76;
+      --peg-azul-texto: #1668a3;
+      --peg-verde-texto: #047a4e;
+      --gradiente: linear-gradient(120deg, #44a9e1 0%, #3fc0b0 55%, #06bb76 100%);
+      --gradiente-escuro: linear-gradient(120deg, #1b6fb3 0%, #12807f 55%, #08855c 100%);
+      --tinta: #16213a;
+      --cinza: #5b6478;
+      --borda: #e2e8f0;
+      --fundo: #f4f8fb;
+      --branco: #ffffff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif; background: var(--fundo); color: var(--tinta); line-height: 1.55; }
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+    /* ---------- Topo ---------- */
+    .hero { position: relative; overflow: hidden; background: var(--gradiente-escuro); color: #fff; padding: 40px 0 96px; }
+    .hero::before, .hero::after, .losango {
+      content: ''; position: absolute; border-radius: 30px; transform: rotate(45deg); pointer-events: none;
+    }
+    .hero::before { width: 340px; height: 340px; right: -90px; top: -150px; background: var(--gradiente); opacity: .55; }
+    .hero::after { width: 210px; height: 210px; right: 250px; bottom: -140px; background: rgba(255, 255, 255, .10); }
+    .losango { width: 130px; height: 130px; right: 110px; top: 150px; background: rgba(255, 255, 255, .16); }
+    .hero .container { position: relative; }
+    .logo { height: 56px; width: auto; display: block; }
+    .selo {
+      display: inline-block; margin-top: 30px; padding: 4px 12px; border-radius: 999px;
+      background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .35);
+      font-size: 12px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase;
+    }
+    .hero h1 { font-size: clamp(28px, 4.4vw, 42px); font-weight: 800; line-height: 1.12; margin-top: 12px; max-width: 640px; }
+    .hero p { margin-top: 12px; max-width: 600px; font-size: 16px; }
+
+    /* ---------- Aviso de acesso ---------- */
+    .aviso {
+      position: relative; margin-top: -56px; background: var(--branco); border-radius: 18px;
+      box-shadow: 0 12px 32px rgba(22, 33, 58, .09); padding: 18px 22px;
+      display: flex; gap: 16px; align-items: center;
+    }
+    .aviso .icone {
+      width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px; display: grid; place-items: center;
+      background: var(--gradiente); color: #fff; font-size: 20px;
+    }
+    .aviso strong { display: block; font-size: 14.5px; }
+    .aviso span { font-size: 13.5px; color: var(--cinza); }
+
+    /* ---------- Busca e filtros ---------- */
+    .ferramentas { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 30px 0 6px; }
+    .ferramentas input {
+      flex: 1; min-width: 220px; border: 1px solid var(--borda); border-radius: 12px; padding: 11px 14px;
+      font: inherit; font-size: 14px; background: var(--branco); color: var(--tinta);
+    }
+    .ferramentas input:focus { outline: 2px solid var(--peg-azul); outline-offset: 1px; }
+    .filtro {
+      border: 1px solid var(--borda); background: var(--branco); border-radius: 999px; padding: 9px 16px;
+      font: inherit; font-size: 13.5px; font-weight: 600; color: var(--cinza); cursor: pointer;
+    }
+    .filtro:hover { border-color: var(--peg-azul); color: var(--peg-azul-texto); }
+    .filtro[aria-pressed="true"] { background: var(--gradiente-escuro); border-color: transparent; color: #fff; }
+
+    /* ---------- Pilares e itens ---------- */
+    .pilar { margin-top: 34px; }
+    .pilar h2 { font-size: 24px; color: var(--peg-verde-texto); font-weight: 500; text-transform: uppercase; letter-spacing: .3px; }
+    .pilar h2 strong { font-weight: 800; }
+    .pilar .contagem { font-size: 13px; color: var(--cinza); margin-top: 2px; }
+    .itens { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-top: 16px; }
+    .item {
+      background: var(--branco); border: 1px solid var(--borda); border-radius: 18px; padding: 20px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .item-topo { display: flex; align-items: center; gap: 12px; }
+    .numero { position: relative; width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 15px; }
+    .numero::before { content: ''; position: absolute; inset: 6px; border-radius: 9px; transform: rotate(45deg); background: var(--gradiente-escuro); }
+    .numero span { position: relative; }
+    .categoria { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; padding: 3px 10px; border-radius: 999px; }
+    .categoria.processo { background: #e6f2fb; color: var(--peg-azul-texto); }
+    .categoria.resultado { background: #e2f6ec; color: var(--peg-verde-texto); }
+    .item h3 { font-size: 15.5px; font-weight: 700; line-height: 1.4; }
+    .item .obs { font-size: 13px; color: var(--cinza); }
+    .links { display: flex; flex-direction: column; gap: 8px; margin-top: auto; padding-top: 6px; }
+    .link {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px; text-decoration: none;
+      font-size: 13.5px; font-weight: 600; color: var(--peg-azul-texto);
+      background: #f0f7fc; border: 1px solid #d5e7f4; padding: 10px 14px; border-radius: 12px;
+    }
+    .link:hover, .link:focus-visible { background: var(--gradiente-escuro); border-color: transparent; color: #fff; outline: none; }
+    .link .seta { font-size: 16px; line-height: 1; }
+    .sem-link { font-size: 13px; color: var(--cinza); background: var(--fundo); border: 1px dashed var(--borda); padding: 10px 14px; border-radius: 12px; margin-top: auto; }
+
+    .vazio { text-align: center; color: var(--cinza); padding: 48px 0; font-size: 15px; }
+    .skeleton { background: linear-gradient(100deg, #e8eef5 40%, #f3f7fb 50%, #e8eef5 60%); border-radius: 18px; min-height: 190px; animation: pulsa 1.4s ease-in-out infinite; }
+    @keyframes pulsa { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+
+    .rodape { margin-top: 56px; padding: 28px 0 36px; border-top: 1px solid var(--borda); background: var(--branco); }
+    .rodape .container { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; font-size: 13px; color: var(--cinza); }
+    .rodape img { height: 34px; width: auto; }
+    .rodape .atualizado { margin-left: auto; }
+
+    @media (max-width: 700px) {
+      .hero { padding: 30px 0 90px; }
+      .logo { height: 44px; }
+      .losango, .hero::after { display: none; }
+      .aviso { align-items: flex-start; }
+      .itens { grid-template-columns: 1fr; }
+      .rodape .atualizado { margin-left: 0; flex-basis: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="losango"></div>
+    <div class="container">
+      <img class="logo" src="/img/peg-logo-branco.png" alt="PEG — Programa de Excelência em Gestão">
+      <span class="selo">Manual 2026</span>
+      <h1>Links úteis do PEG</h1>
+      <p>Painéis e relatórios do Power BI usados como evidência em cada item do Programa de Excelência em Gestão.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="aviso">
+      <div class="icone" aria-hidden="true">🔐</div>
+      <div>
+        <strong>Os relatórios exigem login Microsoft da Estácio</strong>
+        <span>Os botões abrem o Power BI em uma nova aba. Sem a conta institucional, o relatório não é exibido.</span>
+      </div>
+    </div>
+
+    <div class="ferramentas">
+      <input type="search" id="busca" placeholder="Buscar por número, item ou relatório…" aria-label="Buscar itens do PEG">
+      <div id="filtros" role="group" aria-label="Filtrar por categoria"></div>
+    </div>
+
+    <div id="conteudo">
+      <div class="itens"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+    </div>
+  </main>
+
+  <footer class="rodape">
+    <div class="container">
+      <img src="/img/peg-logo.png" alt="PEG">
+      <span>Página de apoio mantida pela Comissão Própria de Avaliação (CPA).</span>
+      <span class="atualizado" id="atualizado"></span>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { sb, comCache, exigeDados } from '/js/db.js';
+    import { esc, fmtData } from '/js/comum.js';
+
+    // Ordem dos pilares conforme o sumário do manual.
+    const ORDEM_PILARES = ['Atração de Alunos', 'Excelência Acadêmica', 'Encantamento do Aluno', 'Engajamento e Cultura', 'Eficiência Operacional'];
+    const posPilar = (p) => (ORDEM_PILARES.indexOf(p) + 1 || 99);
+    const normaliza = (s) => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+    let itens = [];
+    let categoria = '';
+
+    async function busca() {
+      const data = exigeDados(
+        await sb
+          .from('peg_itens')
+          .select('pilar,numero,titulo,categoria,observacao,links,ordem,atualizado_em')
+          .eq('ativo', true)
+          .order('ordem')
+          .order('numero')
+      );
+      return data ?? [];
+    }
+
+    function renderFiltros() {
+      const conta = (c) => itens.filter((it) => !c || it.categoria === c).length;
+      const opcoes = [['', 'Todos'], ['Processo', 'Processo'], ['Resultado', 'Resultado']];
+      document.getElementById('filtros').innerHTML = opcoes
+        .map(([valor, nome]) => `<button class="filtro" data-cat="${valor}" aria-pressed="${valor === categoria}">${nome} (${conta(valor)})</button>`)
+        .join(' ');
+      document.querySelectorAll('#filtros .filtro').forEach((b) =>
+        b.addEventListener('click', () => {
+          categoria = b.dataset.cat;
+          renderFiltros();
+          render();
+        })
+      );
+    }
+
+    function cardItem(it) {
+      const links = (it.links ?? []).filter((l) => /^https:\/\//.test(l.url));
+      const botoes = links.length
+        ? `<div class="links">${links
+            .map((l) => `<a class="link" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.rotulo || 'Abrir relatório')}<span class="seta" aria-hidden="true">↗</span></a>`)
+            .join('')}</div>`
+        : '<div class="sem-link">Sem painel no Power BI para este item.</div>';
+      return `
+        <article class="item">
+          <div class="item-topo">
+            <div class="numero" aria-label="Item ${it.numero}"><span>${it.numero}</span></div>
+            <span class="categoria ${it.categoria === 'Resultado' ? 'resultado' : 'processo'}">${esc(it.categoria)}</span>
+          </div>
+          <h3>${esc(it.titulo)}</h3>
+          ${it.observacao ? `<p class="obs">${esc(it.observacao)}</p>` : ''}
+          ${botoes}
+        </article>`;
+    }
+
+    function render() {
+      const termo = normaliza(document.getElementById('busca').value.trim());
+      const filtrados = itens.filter(
+        (it) =>
+          (!categoria || it.categoria === categoria) &&
+          (!termo ||
+            normaliza(`${it.numero} ${it.titulo} ${it.observacao} ${(it.links ?? []).map((l) => l.rotulo).join(' ')}`).includes(termo))
+      );
+
+      const grupos = {};
+      for (const it of filtrados) (grupos[it.pilar] ??= []).push(it);
+      const pilares = Object.keys(grupos).sort((a, b) => posPilar(a) - posPilar(b));
+
+      document.getElementById('conteudo').innerHTML = pilares.length
+        ? pilares
+            .map((pilar) => {
+              const [primeira, ...resto] = pilar.split(' ');
+              const n = grupos[pilar].length;
+              return `
+                <section class="pilar">
+                  <h2><strong>${esc(primeira)}</strong> ${esc(resto.join(' '))}</h2>
+                  <div class="contagem">${n} ${n === 1 ? 'item' : 'itens'}</div>
+                  <div class="itens">${grupos[pilar].map(cardItem).join('')}</div>
+                </section>`;
+            })
+            .join('')
+        : '<p class="vazio">Nenhum item encontrado.</p>';
+
+      const ultima = itens.map((it) => it.atualizado_em).filter(Boolean).sort().pop();
+      document.getElementById('atualizado').textContent = ultima ? `Atualizado em ${fmtData(ultima)}` : '';
+    }
+
+    let timer;
+    document.getElementById('busca').addEventListener('input', () => {
+      clearTimeout(timer);
+      timer = setTimeout(render, 200);
+    });
+
+    comCache('peg', busca, (dados) => {
+      itens = dados;
+      renderFiltros();
+      render();
+    }).catch(() => {
+      document.getElementById('conteudo').innerHTML =
+        '<p class="vazio">Não foi possível carregar os links agora. Tente novamente em instantes.</p>';
+    });
+  </script>
+</body>
+</html>

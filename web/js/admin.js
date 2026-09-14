@@ -87,6 +87,7 @@ function carregaTudo() {
   carregaPublicacoes();
   carregaDocumentos();
   carregaMembros();
+  carregaPeg();
   carregaConfig();
 }
 
@@ -625,6 +626,122 @@ $('form-membro').addEventListener('submit', async (e) => {
     carregaMembros();
   } catch (err) {
     msg('membro-msg', err.message, 'erro');
+  }
+});
+
+/* ---------- Links PEG ---------- */
+let pegEditando = null;
+let pegItens = [];
+
+// Os links são editados como texto, uma linha "Nome do botão | https://url" cada.
+function linksParaTexto(links) {
+  return (links ?? []).map((l) => `${l.rotulo} | ${l.url}`).join('\n');
+}
+
+function textoParaLinks(texto) {
+  const links = [];
+  for (const bruta of texto.split('\n')) {
+    const linha = bruta.trim();
+    if (!linha) continue;
+    // Separa no primeiro "|": o nome não pode ter barra, mas a URL pode.
+    const i = linha.indexOf('|');
+    const rotulo = i >= 0 ? linha.slice(0, i).trim() : '';
+    const url = (i >= 0 ? linha.slice(i + 1) : linha).trim();
+    if (!/^https:\/\/\S+$/.test(url)) {
+      throw new Error(`Link inválido (precisa começar com https://): ${url.slice(0, 60) || rotulo}`);
+    }
+    links.push({ rotulo: rotulo || 'Abrir relatório', url });
+  }
+  return links;
+}
+
+async function carregaPeg() {
+  const { data, error } = await sb.from('peg_itens').select('*').order('pilar').order('ordem').order('numero');
+  // Sem a tabela (migração ainda não rodada) a aba só mostra a instrução.
+  pegItens = error ? [] : data ?? [];
+  $('peg-vazio').style.display = pegItens.length ? 'none' : '';
+  $('peg-lista').innerHTML = pegItens
+    .map(
+      (it) => `<tr>
+        <td><strong>${it.numero}</strong></td>
+        <td>${esc(it.titulo)}</td>
+        <td>${esc(it.pilar)}</td>
+        <td>${esc(it.categoria)}</td>
+        <td>${it.links?.length ?? 0}</td>
+        <td>${it.ativo ? 'Sim' : 'Não'}</td>
+        <td style="white-space:nowrap">
+          <button class="btn mini claro" data-editar-peg="${it.id}">Editar</button>
+          <button class="btn mini perigo" data-excluir-peg="${it.id}">Excluir</button>
+        </td>
+      </tr>`
+    )
+    .join('');
+
+  $('peg-lista').querySelectorAll('[data-editar-peg]').forEach((b) =>
+    b.addEventListener('click', () => abreFormPeg(pegItens.find((x) => x.id === Number(b.dataset.editarPeg))))
+  );
+  $('peg-lista').querySelectorAll('[data-excluir-peg]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      if (!confirm('Excluir este item do PEG?')) return;
+      const id = Number(b.dataset.excluirPeg);
+      const { error: erro } = await sb.from('peg_itens').delete().eq('id', id);
+      if (erro) return alert(erro.message);
+      if (pegEditando === id) fechaFormPeg();
+      carregaPeg();
+    })
+  );
+}
+
+function abreFormPeg(item = null) {
+  pegEditando = item?.id ?? null;
+  $('form-peg').reset();
+  $('peg-msg').className = 'msg';
+  $('peg-form-titulo').textContent = item ? `Editando item ${item.numero}` : 'Novo item';
+  $('peg-numero').value = item?.numero ?? '';
+  $('peg-pilar').value = item?.pilar ?? 'Excelência Acadêmica';
+  $('peg-categoria').value = item?.categoria ?? 'Processo';
+  $('peg-titulo').value = item?.titulo ?? '';
+  $('peg-observacao').value = item?.observacao ?? '';
+  $('peg-links').value = linksParaTexto(item?.links);
+  $('peg-ordem').value = item?.ordem ?? 0;
+  $('peg-ativo').checked = item ? !!item.ativo : true;
+  $('peg-form-cartao').style.display = '';
+  $('peg-form-cartao').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function fechaFormPeg() {
+  pegEditando = null;
+  $('peg-form-cartao').style.display = 'none';
+}
+
+$('novo-peg').addEventListener('click', () => abreFormPeg());
+$('peg-cancelar').addEventListener('click', fechaFormPeg);
+
+$('form-peg').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try {
+    const dados = {
+      numero: Number($('peg-numero').value),
+      pilar: $('peg-pilar').value.trim(),
+      categoria: $('peg-categoria').value,
+      titulo: $('peg-titulo').value.trim(),
+      observacao: $('peg-observacao').value.trim(),
+      links: textoParaLinks($('peg-links').value),
+      ordem: Number($('peg-ordem').value) || 0,
+      ativo: $('peg-ativo').checked,
+      atualizado_em: agora(),
+    };
+    if (!dados.numero || !dados.pilar || !dados.titulo) throw new Error('Preencha número, pilar e título.');
+
+    const { error } = pegEditando
+      ? await sb.from('peg_itens').update(dados).eq('id', pegEditando)
+      : await sb.from('peg_itens').insert(dados);
+    if (error?.code === '23505') throw new Error(`Já existe o item ${dados.numero} no pilar ${dados.pilar}.`);
+    trataErro(error);
+    fechaFormPeg();
+    carregaPeg();
+  } catch (err) {
+    msg('peg-msg', err.message, 'erro');
   }
 });
 

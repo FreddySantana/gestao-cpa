@@ -12,6 +12,8 @@
   <link rel="modulepreload" href="/js/db.js">
   <link rel="modulepreload" href="/js/comum.js">
   <script>
+    // peg.cpaestacio.com.br é a página de links do PEG, não o portal da CPA.
+    if (location.hostname.indexOf('peg.') === 0) location.replace('/peg' + location.search);
     // Antes da primeira pintura: o portal já sabe qual campus é (pelo domínio) e
     // reserva o topo para o slider — o visitante nunca vê a marca genérica nem o
     // hero piscando antes do conteúdo real chegar.

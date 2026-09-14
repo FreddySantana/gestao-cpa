@@ -4,3 +4,9 @@
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
+
+# Página de links do PEG: pública, mas fora dos buscadores.
+/peg
+  X-Robots-Tag: noindex, nofollow
+/peg.html
+  X-Robots-Tag: noindex, nofollow
