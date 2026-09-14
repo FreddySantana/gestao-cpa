@@ -34,6 +34,11 @@ create policy admin_escreve_peg on peg_itens
 
 -- ---------- Pilar Excelência Acadêmica: itens da lista da CPA ----------
 
+-- Remove itens gravados com acentuação corrompida (texto UTF-8 lido como
+-- Mac Roman ao colar, que troca "ê" por "√™"). chr(8730) é o "√" escrito só
+-- com ASCII, para esta limpeza funcionar mesmo que o SQL chegue corrompido.
+delete from peg_itens where position(chr(8730) in pilar) > 0 or position(chr(8730) in titulo) > 0;
+
 -- A lista não inclui os itens 3, 5 e 15; remove-os caso uma versão anterior
 -- desta migração os tenha criado.
 delete from peg_itens where pilar = 'Excelência Acadêmica' and numero in (3, 5, 15);
