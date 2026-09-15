@@ -300,17 +300,32 @@
               <div><label>Arquivo do edital (PDF, opcional)</label><input type="file" id="edital-arquivo" accept="application/pdf"><small class="dica" id="edital-arquivo-atual"></small></div>
             </div>
 
-            <h4 class="subtitulo-form">Formulário de inscrição</h4>
-            <p class="dica">Monte as perguntas que o aluno vai responder. A autorização de uso dos dados (LGPD) é incluída automaticamente no final.</p>
-            <div id="construtor-campos"></div>
-            <button class="btn claro" type="button" id="add-campo">+ Adicionar pergunta</button>
+            <h4 class="subtitulo-form">Inscrição</h4>
+            <label>Onde o aluno se inscreve</label>
+            <select id="edital-tipo">
+              <option value="interno">Interno: inscrição pelo site da CPA (formulário próprio)</option>
+              <option value="externo">Externo: edital nacional com link de inscrição próprio</option>
+            </select>
 
-            <label style="margin-top:16px">Impedir inscrição duplicada pelo campo</label>
-            <select id="edital-campo-unico"></select>
+            <div id="bloco-link-externo" style="display:none">
+              <label>Link oficial de inscrição</label>
+              <input type="url" id="edital-link" placeholder="https://…">
+              <p class="dica">O botão de inscrição nos portais leva o aluno direto para este endereço.</p>
+            </div>
+
+            <div id="bloco-formulario">
+              <p class="dica">Monte as perguntas que o aluno vai responder. A autorização de uso dos dados (LGPD) é incluída automaticamente no final.</p>
+              <div id="construtor-campos"></div>
+              <button class="btn claro" type="button" id="add-campo">+ Adicionar pergunta</button>
+
+              <label style="margin-top:16px">Impedir inscrição duplicada pelo campo</label>
+              <select id="edital-campo-unico"></select>
+            </div>
 
             <div class="linha" style="align-items:center;margin-top:16px">
               <label class="check"><input type="checkbox" id="edital-publicado"> Publicado (aparece no site)</label>
             </div>
+            <p class="dica">Ao salvar um edital publicado, a notícia de divulgação é criada ou atualizada automaticamente e entra no banner da tela inicial até o fim das inscrições. Edite o edital, não a notícia: a notícia é reescrita a cada salvamento.</p>
             <div class="linha" style="margin-top:14px">
               <button class="btn" type="submit">Salvar edital</button>
               <button class="btn claro" type="button" id="edital-cancelar">Cancelar</button>

@@ -28,6 +28,15 @@ export const SITUACOES_INSCRICAO = {
 export const ROTULO_SITUACAO = { aberto: 'Inscrições abertas', em_breve: 'Em breve', encerrado: 'Encerrado' };
 
 // A situação vem só do período; o banco confere de novo na hora da inscrição.
+export const TIPOS_EDITAL = {
+  interno: 'Inscrição pelo site',
+  externo: 'Edital nacional · inscrição externa',
+};
+
+export const tipoEdital = (e) => (e.tipo === 'externo' ? 'externo' : 'interno');
+
+export const seloTipo = (e) => `<span class="tipo-edital ${tipoEdital(e)}">${TIPOS_EDITAL[tipoEdital(e)]}</span>`;
+
 export function situacaoEdital(e, agora = new Date()) {
   if (e.inicio && agora < new Date(e.inicio)) return 'em_breve';
   if (e.fim && agora > new Date(e.fim)) return 'encerrado';

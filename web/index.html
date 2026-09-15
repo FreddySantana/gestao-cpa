@@ -230,7 +230,9 @@
     async function buscaHome() {
       const [config, destaquesRes, recentesRes, categorias, docsRes] = await Promise.all([
         pegaConfig(),
+        // destaque_ate: a divulgação de um edital sai do banner quando as inscrições encerram.
         sb.from('publicacoes').select(SEL_PUB).eq('publicado', true).eq('destaque', true)
+          .or(`destaque_ate.is.null,destaque_ate.gt."${new Date().toISOString()}"`)
           .in('campus', CAMPUS_VISIVEIS).order('publicado_em', { ascending: false }).limit(5),
         sb.from('publicacoes').select(SEL_PUB).eq('publicado', true)
           .in('campus', CAMPUS_VISIVEIS).order('publicado_em', { ascending: false }).limit(12),

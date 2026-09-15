@@ -85,7 +85,7 @@
   <script type="module">
     import { sb, pegaConfig, comCache, exigeDados, CAMPUS_VISIVEIS } from '/js/db.js';
     import { aplicaConfig, esc } from '/js/comum.js';
-    import { situacaoEdital, ROTULO_SITUACAO, fmtPeriodo } from '/js/editais.js';
+    import { situacaoEdital, ROTULO_SITUACAO, fmtPeriodo, tipoEdital, seloTipo } from '/js/editais.js';
 
     comCache('config', pegaConfig, aplicaConfig);
 
@@ -95,7 +95,7 @@
       const data = exigeDados(
         await sb
           .from('editais')
-          .select('id,area,numero,titulo,resumo,inicio,fim')
+          .select('id,area,numero,titulo,resumo,inicio,fim,tipo,link_inscricao')
           .eq('publicado', true)
           .in('campus', CAMPUS_VISIVEIS)
           .order('fim', { ascending: false, nullsFirst: true })
@@ -105,14 +105,19 @@
 
     function card(e) {
       const sit = situacaoEdital(e);
+      // Edital nacional com inscrição aberta: o botão leva direto ao site oficial.
+      const botao =
+        sit === 'aberto' && tipoEdital(e) === 'externo' && e.link_inscricao
+          ? `<a class="btn-edital" href="${esc(e.link_inscricao)}" target="_blank" rel="noopener">Inscrever-se no site oficial ↗</a>`
+          : `<a class="btn-edital${sit === 'aberto' ? '' : ' secundario'}" href="/edital?id=${e.id}">${sit === 'aberto' ? 'Inscreva-se' : 'Ver edital'}</a>`;
       return `
         <article class="edital-card">
           <div class="edital-area">${esc(e.area)}</div>
           <h4><a href="/edital?id=${e.id}">${esc(e.titulo)}</a></h4>
           <div class="edital-meta">${e.numero ? `${esc(e.numero)} · ` : ''}Inscrições: ${esc(fmtPeriodo(e))}</div>
           ${e.resumo ? `<p class="edital-resumo">${esc(e.resumo)}</p>` : ''}
-          <div><span class="situacao ${sit}">${ROTULO_SITUACAO[sit]}</span></div>
-          <a class="btn-edital${sit === 'aberto' ? '' : ' secundario'}" href="/edital?id=${e.id}">${sit === 'aberto' ? 'Inscreva-se' : 'Ver edital'}</a>
+          <div class="selos-edital"><span class="situacao ${sit}">${ROTULO_SITUACAO[sit]}</span>${seloTipo(e)}</div>
+          ${botao}
         </article>`;
     }
 

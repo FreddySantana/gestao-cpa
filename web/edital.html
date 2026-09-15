@@ -87,7 +87,7 @@
   <script type="module">
     import { sb, urlArquivo, pegaConfig, comCache, exigeDados, CAMPUS_VISIVEIS } from '/js/db.js';
     import { aplicaConfig, esc, mdParaHtml } from '/js/comum.js';
-    import { situacaoEdital, ROTULO_SITUACAO, fmtPeriodo, fmtDataHora, campoHtml, lerFormulario } from '/js/editais.js';
+    import { situacaoEdital, ROTULO_SITUACAO, fmtPeriodo, fmtDataHora, campoHtml, lerFormulario, tipoEdital, seloTipo } from '/js/editais.js';
 
     comCache('config', pegaConfig, aplicaConfig);
 
@@ -100,7 +100,7 @@
       const edital = exigeDados(
         await sb
           .from('editais')
-          .select('id,campus,area,numero,titulo,resumo,descricao,capa,arquivo,arquivo_nome,inicio,fim,campos')
+          .select('id,campus,area,numero,titulo,resumo,descricao,capa,arquivo,arquivo_nome,inicio,fim,campos,tipo,link_inscricao')
           .eq('id', id)
           .eq('publicado', true)
           .in('campus', CAMPUS_VISIVEIS)
@@ -124,7 +124,7 @@
         <div class="edital-area">${esc(e.area)}</div>
         <h1>${esc(e.titulo)}</h1>
         <div class="meta">${e.numero ? `${esc(e.numero)} · ` : ''}Inscrições: ${esc(fmtPeriodo(e))}
-          <span class="situacao ${sit}">${ROTULO_SITUACAO[sit]}</span></div>
+          <span class="situacao ${sit}">${ROTULO_SITUACAO[sit]}</span> ${seloTipo(e)}</div>
         ${e.capa ? `<img class="capa-artigo" src="${esc(urlArquivo(e.capa))}" alt="">` : ''}
         ${e.resumo ? `<p style="font-size:18px;color:var(--cinza)">${esc(e.resumo)}</p>` : ''}
         <div class="conteudo">${mdParaHtml(e.descricao)}</div>
@@ -141,6 +141,13 @@
       }
       if (sit === 'encerrado') {
         blocoInscricao.innerHTML = '<h2>Inscrição</h2><p class="aviso-edital">As inscrições deste edital estão encerradas.</p>';
+        return;
+      }
+      if (tipoEdital(e) === 'externo') {
+        blocoInscricao.innerHTML = `
+          <h2>Inscrição</h2>
+          <p class="aviso-edital">Este é um edital nacional: a inscrição é feita no site oficial do programa, não pelo portal da CPA.</p>
+          ${e.link_inscricao ? `<p style="margin-top:14px"><a class="btn-edital" href="${esc(e.link_inscricao)}" target="_blank" rel="noopener">Fazer a inscrição no site oficial ↗</a></p>` : ''}`;
         return;
       }
       const campos = e.campos ?? [];

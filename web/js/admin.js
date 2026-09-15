@@ -357,6 +357,8 @@ $('form-pub').addEventListener('submit', async (e) => {
     };
     if (!dados.titulo) throw new Error('Informe o título.');
     if (publicado && !pubAtual?.publicado_em) dados.publicado_em = agora();
+    // Marcar destaque de novo à mão tira o prazo automático (ex.: divulgação de edital já encerrado).
+    if (dados.destaque && pubEditando && !pubAtual?.destaque) dados.destaque_ate = null;
 
     // Capa: envia a nova antes de gravar; remove a antiga depois.
     const novaCapa = $('pub-capa').files[0];

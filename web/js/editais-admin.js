@@ -10,6 +10,8 @@ import {
   situacaoEdital,
   fmtPeriodo,
   fmtDataHora,
+  TIPOS_EDITAL,
+  tipoEdital,
 } from '/js/editais.js';
 
 const $ = (id) => document.getElementById(id);
@@ -70,16 +72,18 @@ async function carregaEditais() {
   $('editais-lista').innerHTML = editais
     .map((e) => {
       const situacao = e.publicado ? ROTULO_SITUACAO[situacaoEdital(e)] : 'Rascunho';
+      const externo = tipoEdital(e) === 'externo';
       return `<tr>
-        <td><strong>${esc(e.titulo)}</strong>${e.numero ? `<br><small style="color:var(--cinza)">${esc(e.numero)}</small>` : ''}</td>
+        <td><strong>${esc(e.titulo)}</strong>${e.numero ? `<br><small style="color:var(--cinza)">${esc(e.numero)}</small>` : ''}
+          <br><small style="color:${externo ? '#5b21b6' : '#1e40af'};font-weight:600">${externo ? 'Externo · link nacional' : 'Interno · inscrição no site'}</small></td>
         <td>${NOME_CAMPUS[e.campus] ?? e.campus}</td>
-        <td>${e.inscricoes?.[0]?.count ?? 0}</td>
+        <td>${externo ? '—' : e.inscricoes?.[0]?.count ?? 0}</td>
         <td>${esc(fmtPeriodo(e))}</td>
         <td>${esc(situacao)}</td>
         <td style="white-space:nowrap">
           <button class="btn mini claro" data-acao="editar" data-id="${e.id}">Editar</button>
-          <button class="btn mini claro" data-acao="inscricoes" data-id="${e.id}">Inscrições</button>
-          <button class="btn mini claro" data-acao="divulgar" data-id="${e.id}">Divulgar</button>
+          ${externo ? '' : `<button class="btn mini claro" data-acao="inscricoes" data-id="${e.id}">Inscrições</button>`}
+          ${e.publicado && e.publicacao_id ? `<a class="btn mini claro" href="/publicacao?id=${e.publicacao_id}" target="_blank" rel="noopener">Ver notícia</a>` : ''}
           <button class="btn mini perigo" data-acao="excluir" data-id="${e.id}">Excluir</button>
         </td>
       </tr>`;
@@ -103,23 +107,26 @@ async function acaoEdital(ev) {
   if (!e) return;
   if (botao.dataset.acao === 'editar') abreEditor(e);
   if (botao.dataset.acao === 'inscricoes') abreInscricoes(e);
-  if (botao.dataset.acao === 'divulgar') geraDivulgacao(e);
   if (botao.dataset.acao === 'excluir') excluiEdital(e);
 }
 
 async function excluiEdital(e) {
   const n = e.inscricoes?.[0]?.count ?? 0;
-  const pergunta = n
-    ? `Excluir o edital "${e.titulo}" e as ${n} inscrições dele? Isso não pode ser desfeito.`
-    : `Excluir o edital "${e.titulo}"?`;
+  const partes = [n ? `as ${n} inscrições dele` : '', e.publicacao_id ? 'a notícia de divulgação' : ''].filter(Boolean);
+  const pergunta = `Excluir o edital "${e.titulo}"${partes.length ? ` com ${partes.join(' e ')}` : ''}? Isso não pode ser desfeito.`;
   if (!confirm(pergunta)) return;
   const { data: insc } = await sb.from('inscricoes').select('anexos').eq('edital_id', e.id);
   const { error } = await sb.from('editais').delete().eq('id', e.id);
   if (error) return alert(error.message);
   const caminhos = (insc ?? []).flatMap((i) => (i.anexos ?? []).map((a) => a.caminho));
   if (caminhos.length) sb.storage.from('inscricoes').remove(caminhos).then(() => {});
-  // A capa pode estar em uso pela publicação de divulgação.
-  if (!e.publicacao_id) removeArquivo(e.capa);
+  let capaEmUso = false;
+  if (e.publicacao_id) {
+    const { error: erroPub } = await sb.from('publicacoes').delete().eq('id', e.publicacao_id);
+    // Se a notícia não pôde ser apagada, ela ainda usa a capa.
+    capaEmUso = !!erroPub;
+  }
+  if (!capaEmUso) removeArquivo(e.capa);
   removeArquivo(e.arquivo);
   carregaEditais();
 }
@@ -140,6 +147,9 @@ function abreEditor(e) {
   $('edital-inicio').value = paraInputLocal(e?.inicio);
   $('edital-fim').value = paraInputLocal(e?.fim);
   $('edital-publicado').checked = !!e?.publicado;
+  $('edital-tipo').value = e ? tipoEdital(e) : 'interno';
+  $('edital-link').value = e?.link_inscricao ?? '';
+  alternaTipo();
   $('edital-capa-atual').textContent = e?.capa ? 'Há uma capa cadastrada; escolha outra imagem só se quiser trocar.' : '';
   $('edital-arquivo-atual').textContent = e?.arquivo ? `Arquivo atual: ${e.arquivo_nome || 'edital.pdf'}` : '';
   const inscritos = e?.inscricoes?.[0]?.count ?? 0;
@@ -155,6 +165,12 @@ function abreEditor(e) {
   $('novo-edital').style.display = 'none';
   $('edital-editor').style.display = '';
   $('edital-editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function alternaTipo() {
+  const externo = $('edital-tipo').value === 'externo';
+  $('bloco-link-externo').style.display = externo ? '' : 'none';
+  $('bloco-formulario').style.display = externo ? 'none' : '';
 }
 
 function renderCampos() {
@@ -246,9 +262,16 @@ async function salvaEdital(ev) {
       ajuda: (c.ajuda ?? '').trim(),
       ...(TIPOS_COM_OPCOES.includes(c.tipo) ? { opcoes: (c.opcoes ?? []).map((o) => o.trim()).filter(Boolean) } : {}),
     }));
-    if (camposLimpos.some((c) => !c.rotulo)) throw new Error('Toda pergunta do formulário precisa de um texto.');
-    if (camposLimpos.some((c) => TIPOS_COM_OPCOES.includes(c.tipo) && !c.opcoes.length)) {
-      throw new Error('Perguntas com lista de opções precisam de pelo menos uma opção.');
+    const tipo = $('edital-tipo').value;
+    const link = $('edital-link').value.trim();
+    if (tipo === 'externo') {
+      if (!/^https?:\/\/\S+$/i.test(link)) throw new Error('Informe o link oficial de inscrição, começando com https://');
+    } else {
+      // O formulário só vale para edital interno; no externo fica guardado, sem uso.
+      if (camposLimpos.some((c) => !c.rotulo)) throw new Error('Toda pergunta do formulário precisa de um texto.');
+      if (camposLimpos.some((c) => TIPOS_COM_OPCOES.includes(c.tipo) && !c.opcoes.length)) {
+        throw new Error('Perguntas com lista de opções precisam de pelo menos uma opção.');
+      }
     }
 
     const inicio = deInputLocal($('edital-inicio').value);
@@ -268,15 +291,14 @@ async function salvaEdital(ev) {
       fim,
       campos: camposLimpos,
       campo_unico: $('edital-campo-unico').value || null,
+      tipo,
+      link_inscricao: tipo === 'externo' ? link : null,
       publicado: $('edital-publicado').checked,
       atualizado_em: new Date().toISOString(),
     };
 
     const novaCapa = $('edital-capa').files[0];
-    if (novaCapa) {
-      dados.capa = await envia('capas', novaCapa);
-      if (editando && !editando.publicacao_id) removeArquivo(editando.capa);
-    }
+    if (novaCapa) dados.capa = await envia('capas', novaCapa);
     const novoPdf = $('edital-arquivo').files[0];
     if (novoPdf) {
       if (novoPdf.type !== 'application/pdf') throw new Error('O arquivo do edital precisa ser um PDF.');
@@ -285,10 +307,19 @@ async function salvaEdital(ev) {
       removeArquivo(editando?.arquivo);
     }
 
-    const { error } = editando
-      ? await sb.from('editais').update(dados).eq('id', editando.id)
-      : await sb.from('editais').insert(dados);
+    const { data: salvo, error } = editando
+      ? await sb.from('editais').update(dados).eq('id', editando.id).select().single()
+      : await sb.from('editais').insert(dados).select().single();
     if (error) throw new Error(error.message);
+
+    try {
+      await sincronizaDivulgacao(salvo);
+    } catch (err) {
+      carregaEditais();
+      throw new Error(`O edital foi salvo, mas a notícia de divulgação não foi atualizada: ${err.message}. Salve de novo para tentar outra vez.`);
+    }
+    // A capa antiga só sai do armazenamento depois que a notícia já aponta para a nova.
+    if (novaCapa && editando?.capa) removeArquivo(editando.capa);
     mostraLista();
     carregaEditais();
   } catch (err) {
@@ -298,41 +329,68 @@ async function salvaEdital(ev) {
 
 /* ---------- Divulgação ---------- */
 
-async function geraDivulgacao(e) {
-  if (e.publicacao_id && !confirm('Este edital já tem uma publicação de divulgação. Criar outra?')) return;
-  if (!e.publicado && !confirm('O edital ainda não está publicado: os alunos não vão conseguir abrir a página. Criar a divulgação mesmo assim?')) return;
-
-  const { data: cats } = await sb.from('categorias').select('id,nome');
-  const categoria =
-    cats?.find((c) => c.nome === 'Oportunidades e Carreira') ?? cats?.find((c) => c.nome === 'Notícias e Eventos');
+// Todo edital publicado vira notícia na tela inicial e no banner (destaque até o fim das inscrições).
+// A notícia é derivada do edital: é reescrita a cada salvamento.
+async function sincronizaDivulgacao(e) {
+  const externo = tipoEdital(e) === 'externo';
   const conteudo = [
     e.numero ? `**${e.numero}** · ${e.area}` : `**${e.area}**`,
+    '',
+    `**${TIPOS_EDITAL[tipoEdital(e)]}**`,
     '',
     `**Inscrições:** ${fmtPeriodo(e)}`,
     '',
     e.resumo,
     '',
-    `## [Ver o edital e fazer a inscrição](/edital?id=${e.id})`,
+    ...(externo
+      ? [
+          'A inscrição é feita no site oficial do programa, não pelo portal da CPA.',
+          '',
+          ...(e.link_inscricao ? [`## [Fazer a inscrição no site oficial](${e.link_inscricao})`, ''] : []),
+          `[Ver os detalhes do edital no portal](/edital?id=${e.id})`,
+        ]
+      : [`## [Ver o edital e fazer a inscrição](/edital?id=${e.id})`]),
   ].join('\n');
 
+  let atual = null;
+  if (e.publicacao_id) {
+    const { data } = await sb.from('publicacoes').select('id,publicado_em').eq('id', e.publicacao_id).maybeSingle();
+    atual = data;
+  }
+  // Edital em rascunho não cria notícia; se já existia, ela sai do ar junto.
+  if (!e.publicado && !atual) return;
+
+  const agora = new Date().toISOString();
+  const dados = {
+    titulo: e.titulo,
+    resumo: e.resumo || `Inscrições ${fmtPeriodo(e)}.`,
+    conteudo,
+    capa: e.capa ?? null,
+    campus: e.campus,
+    destaque: true,
+    destaque_ate: e.fim ?? null,
+    publicado: !!e.publicado,
+    atualizado_em: agora,
+  };
+  if (e.publicado && !atual?.publicado_em) dados.publicado_em = agora;
+
+  if (atual) {
+    const { error } = await sb.from('publicacoes').update(dados).eq('id', atual.id);
+    if (error) throw new Error(error.message);
+    return;
+  }
+
+  const { data: cats } = await sb.from('categorias').select('id,nome');
+  const categoria =
+    cats?.find((c) => c.nome === 'Oportunidades e Carreira') ?? cats?.find((c) => c.nome === 'Notícias e Eventos');
   const { data: pub, error } = await sb
     .from('publicacoes')
-    .insert({
-      titulo: e.titulo,
-      resumo: e.resumo || `Inscrições ${fmtPeriodo(e)}.`,
-      conteudo,
-      categoria_id: categoria?.id ?? null,
-      capa: e.capa ?? null,
-      campus: e.campus,
-      destaque: false,
-      publicado: false,
-    })
+    .insert({ ...dados, categoria_id: categoria?.id ?? null })
     .select('id')
     .single();
-  if (error) return alert(error.message);
-  await sb.from('editais').update({ publicacao_id: pub.id }).eq('id', e.id);
-  alert('Publicação de divulgação criada como rascunho. Revise na aba Publicações e publique quando quiser.');
-  carregaEditais();
+  if (error) throw new Error(error.message);
+  const { error: erroLigacao } = await sb.from('editais').update({ publicacao_id: pub.id }).eq('id', e.id);
+  if (erroLigacao) throw new Error(erroLigacao.message);
 }
 
 /* ---------- Inscrições ---------- */
@@ -519,6 +577,7 @@ async function salvaResultado() {
 
 $('novo-edital').addEventListener('click', () => abreEditor(null));
 $('edital-cancelar').addEventListener('click', mostraLista);
+$('edital-tipo').addEventListener('change', alternaTipo);
 $('form-edital').addEventListener('submit', salvaEdital);
 $('add-campo').addEventListener('click', () => {
   campos.push({ id: novoId(), rotulo: '', tipo: 'texto', obrigatorio: false });
