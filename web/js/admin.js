@@ -89,6 +89,9 @@ function carregaTudo() {
   carregaMembros();
   carregaPeg();
   carregaConfig();
+  // Módulos à parte (editais-admin.js) carregam seus dados quando a sessão está pronta.
+  window.__painelPronto = true;
+  document.dispatchEvent(new Event('painel:pronto'));
 }
 
 /* ---------- Categorias ---------- */

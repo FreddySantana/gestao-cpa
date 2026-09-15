@@ -373,3 +373,73 @@ img { max-width: 100%; }
   .rodape .container { gap: 12px 20px; }
   .rodape .admin-link { margin-left: 0; flex-basis: 100%; }
 }
+
+/* ---------- Editais ---------- */
+.editais-grupo { margin-top: 28px; }
+.editais-grupo h3 { font-size: 17px; margin-bottom: 12px; }
+.lista-editais { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+.edital-card {
+  background: var(--branco); border: 1px solid var(--borda); border-radius: var(--raio);
+  padding: 20px 22px; display: flex; flex-direction: column; gap: 8px;
+}
+.edital-card h4 { font-size: 17px; line-height: 1.35; }
+.edital-card h4 a { color: var(--tinta); }
+.edital-card h4 a:hover { color: var(--azul); }
+.edital-area { font-size: 12px; font-weight: 700; color: var(--azul); text-transform: uppercase; letter-spacing: 0.4px; }
+.edital-meta { font-size: 13px; color: var(--cinza); }
+.edital-resumo { font-size: 14px; color: var(--cinza); }
+.situacao { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; margin-left: 4px; }
+.situacao.aberto { background: #dcfce7; color: #166534; }
+.situacao.em_breve { background: #fef3c7; color: #92400e; }
+.situacao.encerrado { background: #e5e7eb; color: #374151; }
+.btn-edital {
+  align-self: flex-start; display: inline-block; margin-top: 6px; background: var(--azul); color: #fff;
+  font-weight: 700; font-size: 14px; padding: 9px 18px; border-radius: 999px; border: 1.5px solid var(--azul);
+}
+.btn-edital:hover { background: var(--azul-escuro); border-color: var(--azul-escuro); }
+.btn-edital.secundario { background: transparent; color: var(--azul); }
+.btn-edital.secundario:hover { background: var(--azul-claro); }
+.resultado-edital { margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--borda); }
+.resultado-edital h2 { font-size: 22px; }
+
+/* Formulário de inscrição */
+.inscricao {
+  background: var(--branco); border: 1px solid var(--borda); border-radius: var(--raio);
+  padding: clamp(22px, 4vw, 40px); margin-top: 22px;
+}
+.inscricao h2 { font-size: 22px; margin-bottom: 6px; }
+.inscricao .obrigatorio { color: #dc2626; }
+.aviso-edital { background: var(--fundo); border-radius: 12px; padding: 16px 18px; color: var(--cinza); margin-top: 10px; }
+.form-inscricao { display: grid; gap: 18px; margin-top: 20px; }
+.form-inscricao .campo { display: flex; flex-direction: column; gap: 6px; border: 0; min-width: 0; }
+.form-inscricao label, .form-inscricao legend { font-weight: 600; font-size: 14.5px; }
+.form-inscricao legend { margin-bottom: 6px; }
+.form-inscricao input:not([type="checkbox"]):not([type="file"]), .form-inscricao select, .form-inscricao textarea {
+  width: 100%; border: 1px solid var(--borda); border-radius: 10px; padding: 11px 13px;
+  font: inherit; font-size: 15px; background: var(--branco); color: var(--tinta);
+}
+.form-inscricao input:focus, .form-inscricao select:focus, .form-inscricao textarea:focus { outline: 2px solid var(--azul); outline-offset: 1px; }
+.form-inscricao .opcao { font-weight: 400; display: flex; gap: 8px; align-items: center; padding: 3px 0; }
+.form-inscricao .ajuda { color: var(--cinza); font-size: 12.5px; }
+.form-inscricao .com-erro input, .form-inscricao .com-erro select, .form-inscricao .com-erro textarea { border-color: #dc2626; }
+.form-inscricao .com-erro legend, .form-inscricao .com-erro > label { color: #b91c1c; }
+.aceite { display: flex; gap: 10px; align-items: flex-start; font-weight: 400 !important; font-size: 13.5px !important; background: var(--fundo); padding: 12px 14px; border-radius: 10px; }
+.aceite input { margin-top: 3px; flex-shrink: 0; }
+.campo-isca { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.form-erro { color: #b91c1c; font-weight: 600; font-size: 14px; min-height: 1px; }
+.btn-enviar {
+  justify-self: start; background: var(--azul); color: #fff; border: 0; border-radius: 999px;
+  padding: 13px 28px; font: inherit; font-weight: 700; font-size: 15px; cursor: pointer;
+}
+.btn-enviar:hover { background: var(--azul-escuro); }
+.btn-enviar:disabled { opacity: 0.6; cursor: wait; }
+.protocolo { text-align: center; padding: 6px 0; }
+.protocolo .icone-ok { font-size: 42px; }
+.protocolo .numero {
+  font-size: clamp(26px, 6vw, 38px); font-weight: 800; letter-spacing: 1px; color: var(--azul-escuro);
+  margin: 12px 0; font-variant-numeric: tabular-nums; word-break: break-all;
+}
+@media print {
+  .topo, .rodape, .no-print { display: none !important; }
+  .artigo, .inscricao { border: 0; box-shadow: none; }
+}

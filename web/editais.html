@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Documentos · Portal CPA</title>
+  <title>Editais · Portal CPA</title>
   <link rel="stylesheet" href="/css/portal.css">
   <link rel="preconnect" href="https://nzsjbakghksbuvammgtp.supabase.co" crossorigin>
   <link rel="modulepreload" href="/js/config.js">
   <link rel="modulepreload" href="/js/vendor/supabase-bundle.mjs">
   <link rel="modulepreload" href="/js/db.js">
   <link rel="modulepreload" href="/js/comum.js">
+  <link rel="modulepreload" href="/js/editais.js">
   <script>
     // Aplica a marca do campus (descoberta pelo domínio) antes da primeira pintura.
     (function (secao) {
@@ -27,7 +28,7 @@
         window.__CPA_CURTO = nomes[2];
         document.title = secao ? secao + ' · ' + nomes[0] : nomes[0];
       } catch (e) {}
-    })('Documentos');
+    })('Editais');
   </script>
 </head>
 <body>
@@ -41,8 +42,8 @@
       <nav class="menu">
         <a href="/">Início</a>
         <a href="/noticias.html">Notícias</a>
-        <a href="/documentos.html" class="ativo">Documentos</a>
-        <a href="/editais.html">Editais</a>
+        <a href="/documentos.html">Documentos</a>
+        <a href="/editais.html" class="ativo">Editais</a>
         <a href="/quem-somos.html">Quem Somos</a>
         <a id="menu-pesquisa" class="btn-pesquisa" href="#" target="_blank" rel="noopener" style="display:none">Responder Pesquisa</a>
       </nav>
@@ -61,17 +62,13 @@
   <script>if (window.__CPA_SUB) { document.querySelector('.marca-nome').textContent = window.__CPA_SUB; document.querySelector('.marca-nome-curto').textContent = window.__CPA_CURTO; }</script>
 
   <section class="secao container">
-    <div class="secao-cabeca"><h2>Repositório de documentos</h2></div>
-    <p style="color:var(--cinza);margin-bottom:20px">
-      Relatórios de autoavaliação, atas, regulamentos, resultados de pesquisas e outros documentos oficiais da CPA.
+    <div class="secao-cabeca"><h2>Editais</h2></div>
+    <p style="color:var(--cinza);margin-bottom:8px">
+      Editais da área de Pesquisa, Extensão e Internacionalização e outras oportunidades para os estudantes.
     </p>
-    <div class="filtros">
-      <input type="search" id="busca" placeholder="Buscar documento…">
-      <select id="filtro-pasta"><option value="">Todas as pastas</option></select>
-      <select id="filtro-ano"><option value="">Todos os anos</option></select>
+    <div id="lista">
+      <div class="lista-editais" style="margin-top:24px"><div class="edital-card skeleton" style="min-height:180px"></div><div class="edital-card skeleton" style="min-height:180px"></div></div>
     </div>
-    <div id="lista"><div class="lista-docs"><div class="doc sk-doc skeleton"></div><div class="doc sk-doc skeleton"></div><div class="doc sk-doc skeleton"></div></div></div>
-    <p class="vazio" id="vazio" style="display:none">Nenhum documento encontrado.</p>
   </section>
 
   <footer class="rodape">
@@ -86,75 +83,57 @@
   </footer>
 
   <script type="module">
-    import { sb, pegaConfig, ativaContadorDownloads, comCache, exigeDados, CAMPUS_VISIVEIS } from '/js/db.js';
-    import { aplicaConfig, itemDocumento, esc } from '/js/comum.js';
+    import { sb, pegaConfig, comCache, exigeDados, CAMPUS_VISIVEIS } from '/js/db.js';
+    import { aplicaConfig, esc } from '/js/comum.js';
+    import { situacaoEdital, ROTULO_SITUACAO, fmtPeriodo } from '/js/editais.js';
 
     comCache('config', pegaConfig, aplicaConfig);
-    ativaContadorDownloads();
 
-    const selPasta = document.getElementById('filtro-pasta');
-    const selAno = document.getElementById('filtro-ano');
-    let todos = [];
+    const TITULOS_GRUPO = { aberto: 'Inscrições abertas', em_breve: 'Em breve', encerrado: 'Encerrados' };
 
-    // Carrega tudo uma vez (com cache) e filtra no navegador — o repositório é pequeno o bastante.
-    function aplicaDados(docs) {
-      todos = docs;
-      const vPasta = selPasta.value;
-      const vAno = selAno.value;
-      selPasta.innerHTML = '<option value="">Todas as pastas</option>' +
-        [...new Set(todos.map((d) => d.pasta))].sort().map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
-      selAno.innerHTML = '<option value="">Todos os anos</option>' +
-        [...new Set(todos.map((d) => d.ano).filter(Boolean))].sort((a, b) => b - a).map((a) => `<option value="${a}">${a}</option>`).join('');
-      selPasta.value = vPasta;
-      selAno.value = vAno;
-      carrega();
-    }
-
-    async function buscaDocs() {
+    async function busca() {
       const data = exigeDados(
         await sb
-          .from('documentos')
-          .select('id,titulo,descricao,pasta,ano,arquivo,nome_original,mime,tamanho,downloads,criado_em')
+          .from('editais')
+          .select('id,area,numero,titulo,resumo,inicio,fim')
           .eq('publicado', true)
           .in('campus', CAMPUS_VISIVEIS)
-          .order('pasta')
-          .order('ano', { ascending: false })
-          .order('criado_em', { ascending: false })
+          .order('fim', { ascending: false, nullsFirst: true })
       );
       return data ?? [];
     }
 
-    function carrega() {
-      const busca = document.getElementById('busca').value.trim().toLowerCase();
-      const docs = todos.filter((d) =>
-        (!selPasta.value || d.pasta === selPasta.value) &&
-        (!selAno.value || String(d.ano) === selAno.value) &&
-        (!busca ||
-          d.titulo.toLowerCase().includes(busca) ||
-          d.descricao.toLowerCase().includes(busca) ||
-          d.nome_original.toLowerCase().includes(busca))
-      );
-
-      const grupos = {};
-      for (const d of docs) (grupos[d.pasta] ??= []).push(d);
-      document.getElementById('lista').innerHTML = Object.entries(grupos)
-        .map(
-          ([pasta, itens]) => `
-          <h3 style="margin:24px 0 10px;font-size:16px;color:var(--azul-escuro)">📁 ${esc(pasta)}</h3>
-          <div class="lista-docs">${itens.map(itemDocumento).join('')}</div>`
-        )
-        .join('');
-      document.getElementById('vazio').style.display = docs.length ? 'none' : '';
+    function card(e) {
+      const sit = situacaoEdital(e);
+      return `
+        <article class="edital-card">
+          <div class="edital-area">${esc(e.area)}</div>
+          <h4><a href="/edital?id=${e.id}">${esc(e.titulo)}</a></h4>
+          <div class="edital-meta">${e.numero ? `${esc(e.numero)} · ` : ''}Inscrições: ${esc(fmtPeriodo(e))}</div>
+          ${e.resumo ? `<p class="edital-resumo">${esc(e.resumo)}</p>` : ''}
+          <div><span class="situacao ${sit}">${ROTULO_SITUACAO[sit]}</span></div>
+          <a class="btn-edital${sit === 'aberto' ? '' : ' secundario'}" href="/edital?id=${e.id}">${sit === 'aberto' ? 'Inscreva-se' : 'Ver edital'}</a>
+        </article>`;
     }
 
-    let timer;
-    document.getElementById('busca').addEventListener('input', () => {
-      clearTimeout(timer);
-      timer = setTimeout(carrega, 250);
+    function render(lista) {
+      // A situação é recalculada a cada renderização, então o cache não fica desatualizado.
+      const grupos = { aberto: [], em_breve: [], encerrado: [] };
+      for (const e of lista) grupos[situacaoEdital(e)].push(e);
+      const html = Object.entries(grupos)
+        .filter(([, itens]) => itens.length)
+        .map(([chave, itens]) => `
+          <div class="editais-grupo">
+            <h3>${TITULOS_GRUPO[chave]}</h3>
+            <div class="lista-editais">${itens.map(card).join('')}</div>
+          </div>`)
+        .join('');
+      document.getElementById('lista').innerHTML = html || '<p class="vazio">Nenhum edital publicado no momento.</p>';
+    }
+
+    comCache('editais', busca, render).catch(() => {
+      document.getElementById('lista').innerHTML = '<p class="vazio">Não foi possível carregar os editais agora. Tente novamente em instantes.</p>';
     });
-    selPasta.addEventListener('change', carrega);
-    selAno.addEventListener('change', carrega);
-    comCache('documentos', buscaDocs, aplicaDados);
   </script>
 </body>
 </html>

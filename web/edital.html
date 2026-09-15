@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edital · Portal CPA</title>
+  <link rel="stylesheet" href="/css/portal.css">
+  <link rel="preconnect" href="https://nzsjbakghksbuvammgtp.supabase.co" crossorigin>
+  <link rel="modulepreload" href="/js/config.js">
+  <link rel="modulepreload" href="/js/vendor/supabase-bundle.mjs">
+  <link rel="modulepreload" href="/js/db.js">
+  <link rel="modulepreload" href="/js/comum.js">
+  <link rel="modulepreload" href="/js/editais.js">
+  <script>
+    // Aplica a marca do campus (descoberta pelo domínio) antes da primeira pintura.
+    // O título aqui é provisório: vira o do edital assim que ele carrega.
+    (function (secao) {
+      try {
+        var mapa = { 'para.cpaestacio.com.br': 'para', 'belem.cpaestacio.com.br': 'belem' };
+        var forcado = new URLSearchParams(location.search).get('campus');
+        if (forcado === 'para' || forcado === 'belem') sessionStorage.setItem('campus-forcado', forcado);
+        var campus = sessionStorage.getItem('campus-forcado') || mapa[location.hostname] || 'para';
+        var nomes = {
+          para: ['Portal CPA · Estácio Pará', 'Comissão Própria de Avaliação · Estácio Pará', 'CPA · Estácio Pará'],
+          belem: ['Portal CPA · Estácio Belém', 'Comissão Própria de Avaliação · Centro Universitário Estácio Belém', 'CPA · Estácio Belém'],
+        }[campus];
+        document.documentElement.dataset.campus = campus;
+        window.__CPA_SUB = nomes[1];
+        window.__CPA_CURTO = nomes[2];
+        window.__CPA_PORTAL = nomes[0];
+        document.title = secao ? secao + ' · ' + nomes[0] : nomes[0];
+      } catch (e) {}
+    })('Edital');
+  </script>
+</head>
+<body>
+  <header class="topo">
+    <div class="container topo-inner">
+      <a class="marca" href="/">
+        <span class="logo">CPA</span>
+        <span class="marca-nome" data-config="subtitulo">Comissão Própria de Avaliação<small>Estácio</small></span>
+        <span class="marca-nome-curto">CPA · Estácio</span>
+      </a>
+      <nav class="menu">
+        <a href="/">Início</a>
+        <a href="/noticias.html">Notícias</a>
+        <a href="/documentos.html">Documentos</a>
+        <a href="/editais.html" class="ativo">Editais</a>
+        <a href="/quem-somos.html">Quem Somos</a>
+        <a id="menu-pesquisa" class="btn-pesquisa" href="#" target="_blank" rel="noopener" style="display:none">Responder Pesquisa</a>
+      </nav>
+      <div class="menu-mobile">
+        <select onchange="if(this.value)location.href=this.value">
+          <option value="">Menu</option>
+          <option value="/">Início</option>
+          <option value="/noticias.html">Notícias</option>
+          <option value="/documentos.html">Documentos</option>
+          <option value="/editais.html">Editais</option>
+          <option value="/quem-somos.html">Quem Somos</option>
+        </select>
+      </div>
+    </div>
+  </header>
+  <script>if (window.__CPA_SUB) { document.querySelector('.marca-nome').textContent = window.__CPA_SUB; document.querySelector('.marca-nome-curto').textContent = window.__CPA_CURTO; }</script>
+
+  <div class="container">
+    <article class="artigo" id="artigo">
+      <div class="sk-titulo skeleton"></div>
+      <div class="sk-linha skeleton" style="width:40%"></div>
+      <div class="sk-linha skeleton"></div>
+      <div class="sk-linha skeleton" style="width:85%"></div>
+    </article>
+    <section class="inscricao" id="inscricao" hidden></section>
+  </div>
+
+  <footer class="rodape">
+    <div class="container">
+      <span data-config="nome_portal">Portal CPA · Estácio</span>
+      <a href="/quem-somos.html">Quem Somos</a>
+      <a href="/documentos.html">Documentos</a>
+      <a id="rodape-contato" href="#" style="display:none"></a>
+      <a id="rodape-biblioteca" href="#" style="display:none"></a>
+      <a class="admin-link" href="/admin.html">Área administrativa</a>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { sb, urlArquivo, pegaConfig, comCache, exigeDados, CAMPUS_VISIVEIS } from '/js/db.js';
+    import { aplicaConfig, esc, mdParaHtml } from '/js/comum.js';
+    import { situacaoEdital, ROTULO_SITUACAO, fmtPeriodo, fmtDataHora, campoHtml, lerFormulario } from '/js/editais.js';
+
+    comCache('config', pegaConfig, aplicaConfig);
+
+    const id = Number(new URLSearchParams(location.search).get('id'));
+    const artigo = document.getElementById('artigo');
+    const blocoInscricao = document.getElementById('inscricao');
+
+    // Sem cache nesta página: uma segunda renderização apagaria o que o aluno já digitou.
+    async function busca() {
+      const edital = exigeDados(
+        await sb
+          .from('editais')
+          .select('id,campus,area,numero,titulo,resumo,descricao,capa,arquivo,arquivo_nome,inicio,fim,campos')
+          .eq('id', id)
+          .eq('publicado', true)
+          .in('campus', CAMPUS_VISIVEIS)
+          .maybeSingle()
+      );
+      if (!edital) return { edital: null, resultado: null };
+      const resultado = exigeDados(
+        await sb.from('editais_resultados').select('texto').eq('edital_id', id).eq('publicado', true).maybeSingle()
+      );
+      return { edital, resultado };
+    }
+
+    function render({ edital: e, resultado }) {
+      if (!e) {
+        artigo.innerHTML = '<p class="vazio">Edital não encontrado. <a href="/editais.html">Ver todos os editais</a></p>';
+        return;
+      }
+      document.title = `${e.titulo} · ${window.__CPA_PORTAL || 'Portal CPA'}`;
+      const sit = situacaoEdital(e);
+      artigo.innerHTML = `
+        <div class="edital-area">${esc(e.area)}</div>
+        <h1>${esc(e.titulo)}</h1>
+        <div class="meta">${e.numero ? `${esc(e.numero)} · ` : ''}Inscrições: ${esc(fmtPeriodo(e))}
+          <span class="situacao ${sit}">${ROTULO_SITUACAO[sit]}</span></div>
+        ${e.capa ? `<img class="capa-artigo" src="${esc(urlArquivo(e.capa))}" alt="">` : ''}
+        ${e.resumo ? `<p style="font-size:18px;color:var(--cinza)">${esc(e.resumo)}</p>` : ''}
+        <div class="conteudo">${mdParaHtml(e.descricao)}</div>
+        ${e.arquivo ? `<p style="margin-top:20px"><a class="btn-edital" href="${esc(urlArquivo(e.arquivo, e.arquivo_nome || 'edital.pdf'))}" target="_blank" rel="noopener">📄 Baixar o edital (PDF)</a></p>` : ''}
+        ${resultado?.texto ? `<section class="resultado-edital"><h2>Resultado</h2><div class="conteudo">${mdParaHtml(resultado.texto)}</div></section>` : ''}`;
+      renderInscricao(e, sit);
+    }
+
+    function renderInscricao(e, sit) {
+      blocoInscricao.hidden = false;
+      if (sit === 'em_breve') {
+        blocoInscricao.innerHTML = `<h2>Inscrição</h2><p class="aviso-edital">As inscrições abrem ${esc(fmtPeriodo(e))}.</p>`;
+        return;
+      }
+      if (sit === 'encerrado') {
+        blocoInscricao.innerHTML = '<h2>Inscrição</h2><p class="aviso-edital">As inscrições deste edital estão encerradas.</p>';
+        return;
+      }
+      const campos = e.campos ?? [];
+      if (!campos.length) {
+        blocoInscricao.innerHTML = '<h2>Inscrição</h2><p class="aviso-edital">Este edital não recebe inscrições pelo site. Siga as orientações do edital.</p>';
+        return;
+      }
+      blocoInscricao.innerHTML = `
+        <h2>Faça sua inscrição</h2>
+        <p style="color:var(--cinza)">Campos com <span class="obrigatorio">*</span> são obrigatórios.</p>
+        <form class="form-inscricao" id="form-inscricao" novalidate>
+          ${campos.map(campoHtml).join('')}
+          <div class="campo-isca" aria-hidden="true">
+            <label>Não preencha este campo <input type="text" name="__site" tabindex="-1" autocomplete="off"></label>
+          </div>
+          <label class="aceite">
+            <input type="checkbox" id="aceite">
+            <span>Declaro que as informações são verdadeiras e autorizo a Comissão Própria de Avaliação a usar meus dados
+            exclusivamente para este edital, conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).</span>
+          </label>
+          <p class="form-erro" id="form-erro" role="alert"></p>
+          <button class="btn-enviar" type="submit">Enviar inscrição</button>
+        </form>`;
+      document.getElementById('form-inscricao').addEventListener('submit', (ev) => enviaInscricao(ev, e));
+    }
+
+    async function enviaAnexos(editalId, arquivos) {
+      const lote = crypto.randomUUID();
+      const anexos = [];
+      for (const { campo, file } of arquivos) {
+        const ext = { 'application/pdf': 'pdf', 'image/png': 'png', 'image/jpeg': 'jpg' }[file.type];
+        const caminho = `edital-${editalId}/${lote}/${campo}.${ext}`;
+        const { error } = await sb.storage.from('inscricoes').upload(caminho, file, { contentType: file.type });
+        if (error) throw new Error(`Não foi possível enviar o arquivo "${file.name}". Tente novamente.`);
+        anexos.push({ campo, caminho, nome: file.name });
+      }
+      return anexos;
+    }
+
+    async function enviaInscricao(ev, e) {
+      ev.preventDefault();
+      const form = ev.currentTarget;
+      const erro = document.getElementById('form-erro');
+      const botao = form.querySelector('.btn-enviar');
+      erro.textContent = '';
+      form.querySelectorAll('.com-erro').forEach((el) => el.classList.remove('com-erro'));
+
+      // Isca para robôs: pessoas não veem este campo, então só robôs o preenchem.
+      if (form.elements.__site.value) {
+        mostraConfirmacao(null, e);
+        return;
+      }
+
+      let lidos;
+      try {
+        lidos = lerFormulario(form, e.campos ?? []);
+        if (!document.getElementById('aceite').checked) throw new Error('Para enviar, marque a autorização de uso dos dados.');
+      } catch (err) {
+        erro.textContent = err.message;
+        if (err.campo) {
+          const el = form.querySelector(`[name="${CSS.escape(err.campo)}"]`);
+          el?.closest('.campo')?.classList.add('com-erro');
+          el?.focus();
+        }
+        return;
+      }
+
+      botao.disabled = true;
+      botao.textContent = 'Enviando…';
+      try {
+        const anexos = await enviaAnexos(e.id, lidos.arquivos);
+        const { data: protocolo, error } = await sb.rpc('inscrever', {
+          p_edital: e.id,
+          p_dados: lidos.dados,
+          p_anexos: anexos,
+          p_aceite: true,
+        });
+        if (error) throw new Error(error.message);
+        mostraConfirmacao(protocolo, e);
+      } catch (err) {
+        erro.textContent = err.message || 'Não foi possível enviar a inscrição. Tente novamente.';
+        botao.disabled = false;
+        botao.textContent = 'Enviar inscrição';
+      }
+    }
+
+    function mostraConfirmacao(protocolo, e) {
+      blocoInscricao.innerHTML = `
+        <div class="protocolo">
+          <div class="icone-ok" aria-hidden="true">✅</div>
+          <h2>Inscrição recebida!</h2>
+          ${protocolo ? `
+            <p style="color:var(--cinza)">Guarde o número de protocolo abaixo: ele identifica a sua inscrição${e.numero ? ` no ${esc(e.numero)}` : ''}.</p>
+            <div class="numero">${esc(protocolo)}</div>
+            <p style="color:var(--cinza);font-size:14px">Enviada em ${fmtDataHora(new Date().toISOString())}</p>
+            <button class="btn-enviar no-print" type="button" id="imprimir">Imprimir ou salvar comprovante</button>` : ''}
+        </div>`;
+      document.getElementById('imprimir')?.addEventListener('click', () => window.print());
+      blocoInscricao.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    if (!id) {
+      render({ edital: null, resultado: null });
+    } else {
+      busca().then(render).catch(() => {
+        artigo.innerHTML = '<p class="vazio">Não foi possível carregar o edital agora. Verifique sua conexão e recarregue a página.</p>';
+      });
+    }
+  </script>
+</body>
+</html>

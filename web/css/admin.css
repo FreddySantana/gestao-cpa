@@ -199,3 +199,14 @@ input[type="file"] { font-size: 13.5px; }
   .linha { flex-direction: column; gap: 0; }
   .modal { padding: 20px 16px; }
 }
+
+/* ---------- Editais ---------- */
+.subtitulo-form { font-size: 15px; margin: 26px 0 4px; padding-top: 18px; border-top: 1px solid var(--borda); }
+.campo-construtor { border: 1px solid var(--borda); border-radius: 12px; padding: 12px 14px; margin: 10px 0; background: #fafbfe; }
+.campo-construtor-acoes { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+.campo-construtor-acoes .espaco { flex: 1; }
+.campo-construtor-acoes .btn:disabled { opacity: 0.4; cursor: default; }
+.inscricao-detalhe td { background: #f8fafc; }
+.inscricao-detalhe dl { display: grid; grid-template-columns: minmax(140px, max-content) 1fr; gap: 6px 16px; font-size: 13.5px; }
+.inscricao-detalhe dt { color: var(--cinza); }
+.inscricao-detalhe dd { margin: 0; white-space: pre-wrap; }

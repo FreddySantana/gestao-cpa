@@ -35,6 +35,7 @@
       <button data-aba="documentos">📁 Documentos</button>
       <button data-aba="membros">👥 Membros</button>
       <button data-aba="categorias">🏷️ Categorias</button>
+      <button data-aba="editais">📋 Editais</button>
       <button data-aba="peg">📊 Links PEG</button>
       <button data-aba="config">⚙️ Configurações</button>
       <div class="rodape-lateral">
@@ -250,6 +251,117 @@
           </form>
         </div>
       </section>
+      <!-- Editais -->
+      <section class="aba" id="aba-editais">
+        <div class="cabeca-aba">
+          <h2>Editais</h2>
+          <div class="acoes"><button class="btn" type="button" id="novo-edital">+ Novo edital</button></div>
+        </div>
+
+        <div id="editais-lista-bloco">
+          <div class="tabela-wrap"><table>
+            <thead><tr><th>Edital</th><th>Portal</th><th>Inscrições</th><th>Período</th><th>Situação</th><th></th></tr></thead>
+            <tbody id="editais-lista"></tbody>
+          </table></div>
+          <p class="vazio" id="editais-vazio" style="display:none"></p>
+        </div>
+
+        <div class="cartao" id="edital-editor" style="display:none">
+          <h3 id="edital-editor-titulo" style="font-size:17px;margin-bottom:6px">Novo edital</h3>
+          <p class="dica" id="edital-aviso-inscritos" style="display:none;color:#b45309"></p>
+          <form id="form-edital">
+            <div class="linha">
+              <div style="max-width:240px"><label>Número (opcional)</label><input type="text" id="edital-numero" placeholder="Ex.: Edital nº 03/2026"></div>
+              <div><label>Título</label><input type="text" id="edital-titulo" required></div>
+            </div>
+            <div class="linha">
+              <div><label>Área</label><input type="text" id="edital-area"></div>
+              <div style="max-width:240px">
+                <label>Portal</label>
+                <select id="edital-campus">
+                  <option value="ambos">Ambos os portais</option>
+                  <option value="para">Só Estácio Pará</option>
+                  <option value="belem">Só Estácio Belém</option>
+                </select>
+              </div>
+            </div>
+            <label>Resumo (aparece na lista de editais e na divulgação)</label>
+            <textarea id="edital-resumo" style="min-height:64px"></textarea>
+            <label>Descrição do edital</label>
+            <textarea id="edital-descricao" class="grande"></textarea>
+            <p class="dica">Mesma formatação das publicações: <b>## Título</b>, <b>**negrito**</b>, <b>- item</b>, <b>[texto](https://link)</b>.</p>
+            <div class="linha">
+              <div><label>Início das inscrições</label><input type="datetime-local" id="edital-inicio"></div>
+              <div><label>Fim das inscrições</label><input type="datetime-local" id="edital-fim"></div>
+            </div>
+            <p class="dica">Sem início, as inscrições abrem assim que o edital é publicado. Sem fim, não encerram sozinhas.</p>
+            <div class="linha">
+              <div><label>Capa (opcional)</label><input type="file" id="edital-capa" accept="image/*"><small class="dica" id="edital-capa-atual"></small></div>
+              <div><label>Arquivo do edital (PDF, opcional)</label><input type="file" id="edital-arquivo" accept="application/pdf"><small class="dica" id="edital-arquivo-atual"></small></div>
+            </div>
+
+            <h4 class="subtitulo-form">Formulário de inscrição</h4>
+            <p class="dica">Monte as perguntas que o aluno vai responder. A autorização de uso dos dados (LGPD) é incluída automaticamente no final.</p>
+            <div id="construtor-campos"></div>
+            <button class="btn claro" type="button" id="add-campo">+ Adicionar pergunta</button>
+
+            <label style="margin-top:16px">Impedir inscrição duplicada pelo campo</label>
+            <select id="edital-campo-unico"></select>
+
+            <div class="linha" style="align-items:center;margin-top:16px">
+              <label class="check"><input type="checkbox" id="edital-publicado"> Publicado (aparece no site)</label>
+            </div>
+            <div class="linha" style="margin-top:14px">
+              <button class="btn" type="submit">Salvar edital</button>
+              <button class="btn claro" type="button" id="edital-cancelar">Cancelar</button>
+            </div>
+            <div class="msg" id="edital-msg"></div>
+          </form>
+        </div>
+
+        <div id="inscricoes-bloco" style="display:none">
+          <div class="cartao">
+            <div class="linha" style="align-items:center">
+              <div>
+                <h3 id="inscricoes-titulo" style="font-size:17px">Inscrições</h3>
+                <small class="dica" id="inscricoes-contagem"></small>
+              </div>
+              <div style="flex:0;white-space:nowrap">
+                <button class="btn claro" type="button" id="inscricoes-voltar">← Voltar</button>
+                <button class="btn claro" type="button" id="inscricoes-csv">Exportar planilha (CSV)</button>
+              </div>
+            </div>
+            <div class="filtros-admin" style="margin-top:12px">
+              <select id="inscricoes-filtro">
+                <option value="">Todas as situações</option>
+                <option value="recebida">Recebidas</option>
+                <option value="deferida">Deferidas</option>
+                <option value="indeferida">Indeferidas</option>
+                <option value="selecionada">Selecionadas</option>
+              </select>
+            </div>
+            <div class="tabela-wrap"><table>
+              <thead id="inscricoes-cabeca"></thead>
+              <tbody id="inscricoes-lista"></tbody>
+            </table></div>
+            <p class="vazio" id="inscricoes-vazio" style="display:none">Nenhuma inscrição.</p>
+            <div class="msg" id="inscricoes-msg"></div>
+          </div>
+
+          <div class="cartao">
+            <h3 style="font-size:16px;margin-bottom:4px">Resultado</h3>
+            <p class="dica">Aparece na página do edital quando marcado como publicado. “Preencher com as selecionadas” monta a lista com os nomes das inscrições marcadas como Selecionada.</p>
+            <textarea id="resultado-texto" class="grande"></textarea>
+            <div class="linha" style="align-items:center;margin-top:10px">
+              <button class="btn claro" type="button" id="resultado-preencher">Preencher com as selecionadas</button>
+              <label class="check"><input type="checkbox" id="resultado-publicado"> Resultado publicado</label>
+              <div style="flex:0"><button class="btn" type="button" id="resultado-salvar">Salvar resultado</button></div>
+            </div>
+            <div class="msg" id="resultado-msg"></div>
+          </div>
+        </div>
+      </section>
+
       <!-- Links PEG -->
       <section class="aba" id="aba-peg">
         <div class="cabeca-aba">
@@ -361,5 +473,6 @@
   </div>
 
   <script type="module" src="/js/admin.js"></script>
+  <script type="module" src="/js/editais-admin.js"></script>
 </body>
 </html>
