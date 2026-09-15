@@ -101,6 +101,9 @@ export async function categoriasComTotal() {
       .select('*, publicacoes(count)')
       .eq('ativa', true)
       .in('publicacoes.campus', CAMPUS_VISIVEIS)
+      // Conta só as publicadas: logado no painel, as regras de acesso também
+      // deixam passar rascunhos e despublicadas, e os números ficariam errados.
+      .eq('publicacoes.publicado', true)
       .order('ordem')
       .order('nome')
   );
