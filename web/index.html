@@ -208,16 +208,10 @@
         document.getElementById('slider').style.display = 'none';
       }
 
-      const idsSlider = new Set(slides.map((p) => p.id));
-      const lista = recentes.filter((p) => !idsSlider.has(p.id)).slice(0, 6);
-      if (lista.length) {
-        document.getElementById('recentes').innerHTML = lista.map((p) => cardPublicacao(p)).join('');
-      } else if (!slides.length) {
-        document.getElementById('recentes').innerHTML = '';
-        document.getElementById('vazio-recentes').style.display = '';
-      } else {
-        document.getElementById('recentes').innerHTML = slides.slice(0, 6).map((p) => cardPublicacao(p)).join('');
-      }
+      // "Últimas publicações" sempre em ordem cronológica, mesmo repetindo o que está no slider.
+      const lista = recentes.slice(0, 6);
+      document.getElementById('recentes').innerHTML = lista.map((p) => cardPublicacao(p)).join('');
+      document.getElementById('vazio-recentes').style.display = lista.length ? 'none' : '';
 
       document.getElementById('chips-categorias').innerHTML = categorias
         .filter((c) => c.total > 0)
