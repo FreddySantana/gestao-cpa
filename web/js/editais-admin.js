@@ -340,8 +340,7 @@ async function sincronizaDivulgacao(e) {
     '',
     `**Inscrições:** ${fmtPeriodo(e)}`,
     '',
-    e.resumo,
-    '',
+    // O resumo não entra aqui: a página da notícia já o mostra abaixo do título.
     ...(externo
       ? [
           'A inscrição é feita no site oficial do programa, não pelo portal da CPA.',

@@ -192,7 +192,12 @@
 
       // Slider do topo: destaques primeiro, completado com as mais recentes (até 5).
       const idsDestaque = new Set(destaques.map((p) => p.id));
-      const slides = destaques.concat(recentes.filter((p) => !idsDestaque.has(p.id))).slice(0, 5);
+      // Destaque vencido (ex.: edital com inscrições encerradas) também não entra completando o slider.
+      const agora = new Date();
+      const destaqueVencido = (p) => p.destaque && p.destaque_ate && new Date(p.destaque_ate) <= agora;
+      const slides = destaques
+        .concat(recentes.filter((p) => !idsDestaque.has(p.id) && !destaqueVencido(p)))
+        .slice(0, 5);
       if (slides.length) {
         document.getElementById('hero').style.display = 'none';
         montaSlider(slides);
@@ -234,7 +239,7 @@
         sb.from('publicacoes').select(SEL_PUB).eq('publicado', true).eq('destaque', true)
           .or(`destaque_ate.is.null,destaque_ate.gt."${new Date().toISOString()}"`)
           .in('campus', CAMPUS_VISIVEIS).order('publicado_em', { ascending: false }).limit(5),
-        sb.from('publicacoes').select(SEL_PUB).eq('publicado', true)
+        sb.from('publicacoes').select(`${SEL_PUB},destaque_ate`).eq('publicado', true)
           .in('campus', CAMPUS_VISIVEIS).order('publicado_em', { ascending: false }).limit(12),
         categoriasComTotal(),
         sb.from('documentos').select('id,titulo,pasta,ano,arquivo,nome_original,mime,tamanho,criado_em')
