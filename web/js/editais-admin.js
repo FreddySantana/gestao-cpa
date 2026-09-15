@@ -496,10 +496,9 @@ function preencheResultado() {
   const nomes = selecionadas
     .map((i) => valorTexto(i.dados?.[campoNome?.id]) || i.protocolo)
     .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  // A página do edital já mostra o título "Resultado"; aqui vai só o texto.
   $('resultado-texto').value = [
-    `## Resultado${editalAtual.numero ? ` do ${editalAtual.numero}` : ''}`,
-    '',
-    'Inscrições selecionadas, em ordem alfabética:',
+    `Inscrições selecionadas${editalAtual.numero ? ` no ${editalAtual.numero}` : ''}, em ordem alfabética:`,
     '',
     ...nomes.map((n) => `- ${n}`),
   ].join('\n');
