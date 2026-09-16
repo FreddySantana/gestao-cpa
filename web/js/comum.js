@@ -104,7 +104,26 @@ export function mdParaHtml(texto) {
   }
   fechaParagrafo();
   fechaLista();
-  return saida.join('\n');
+  // Duas ou mais imagens seguidas (cada uma em seu parágrafo) viram uma galeria em grade;
+  // clicar abre a foto inteira em outra aba.
+  const soImagem = /^<p>(<img class="conteudo-img" src="([^"]+)"[^>]*>)<\/p>$/;
+  const final = [];
+  for (let i = 0; i < saida.length; ) {
+    let j = i;
+    while (j < saida.length && soImagem.test(saida[j])) j++;
+    if (j - i >= 2) {
+      const itens = saida.slice(i, j).map((p) => {
+        const [, img, src] = p.match(soImagem);
+        return `<a href="${src}" target="_blank" rel="noopener">${img}</a>`;
+      });
+      final.push(`<div class="galeria">${itens.join('')}</div>`);
+      i = j;
+    } else {
+      final.push(saida[i]);
+      i++;
+    }
+  }
+  return final.join('\n');
 }
 
 // Preenche nome do portal, banner de pesquisa e rodapé a partir da config.
