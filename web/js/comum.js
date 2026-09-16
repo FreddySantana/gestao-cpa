@@ -31,6 +31,13 @@ export function classeIcone(mime = '', nome = '') {
 // Converte o texto das publicações (markdown simplificado) em HTML seguro.
 // Suporta: ## títulos, **negrito**, *itálico*, [link](url), ![descrição](url) para
 // imagens, listas com "- " e > citação.
+// Uma imagem na primeira linha do conteúdo toma o lugar da capa na página da notícia
+// (a capa continua sendo usada no slider e nos cards). Útil para capa sem texto + arte com texto.
+export function separaImagemInicial(texto = '') {
+  const m = texto.match(/^\s*!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)[ \t]*(?:\r?\n|$)/);
+  return m ? { alt: m[1], url: m[2], resto: texto.slice(m[0].length) } : { alt: '', url: null, resto: texto };
+}
+
 export function mdParaHtml(texto) {
   const linhas = esc(texto).split(/\r?\n/);
   const saida = [];

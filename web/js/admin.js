@@ -1,6 +1,6 @@
 // Painel administrativo — versão Supabase (Auth + Postgres + Storage).
 import { sb, urlArquivo } from '/js/db.js';
-import { esc, fmtData, fmtTamanho, mdParaHtml } from '/js/comum.js';
+import { esc, fmtData, fmtTamanho, mdParaHtml, separaImagemInicial } from '/js/comum.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -310,6 +310,8 @@ function montaPrevia() {
   for (const f of $('pub-anexos').files) anexos.push(`📎 ${f.name} (novo)`);
 
   const resumo = $('pub-resumo').value.trim();
+  const inicial = separaImagemInicial($('pub-conteudo').value);
+  if (inicial.url) capa = inicial.url;
   $('pub-previa').innerHTML = `
     <div class="previa-aviso">Prévia — é assim que a notícia vai aparecer no portal</div>
     <div class="previa-artigo">
@@ -318,7 +320,7 @@ function montaPrevia() {
       <div class="previa-meta">Publicado em ${fmtData(agora())} · 0 visualização(ões)</div>
       ${capa ? `<img class="previa-capa" src="${esc(capa)}" alt="">` : ''}
       ${resumo ? `<p class="previa-resumo">${esc(resumo)}</p>` : ''}
-      <div class="previa-conteudo">${mdParaHtml($('pub-conteudo').value)}</div>
+      <div class="previa-conteudo">${mdParaHtml(inicial.resto)}</div>
       ${anexos.length ? `<div class="previa-anexos"><strong>Anexos</strong>${anexos.map((a) => `<span>${esc(a)}</span>`).join('')}</div>` : ''}
     </div>`;
 }

@@ -91,7 +91,7 @@
 
   <script type="module">
     import { sb, SEL_PUB, normalizaPublicacao, urlArquivo, pegaConfig, comCache, exigeDados, CAMPUS_VISIVEIS } from '/js/db.js';
-    import { aplicaConfig, cardPublicacao, mdParaHtml, esc, fmtData, fmtTamanho, classeIcone } from '/js/comum.js';
+    import { aplicaConfig, cardPublicacao, mdParaHtml, separaImagemInicial, esc, fmtData, fmtTamanho, classeIcone } from '/js/comum.js';
 
     comCache('config', pegaConfig, aplicaConfig);
 
@@ -155,13 +155,17 @@
                .join('')}
            </div>`
         : '';
+      const inicial = separaImagemInicial(p.conteudo);
+      const topo = inicial.url
+        ? `<img class="capa-artigo" src="${esc(inicial.url)}" alt="${esc(inicial.alt)}">`
+        : p.capa ? `<img class="capa-artigo" src="${esc(urlArquivo(p.capa))}" alt="">` : '';
       artigo.innerHTML = `
         ${cat}
         <h1>${esc(p.titulo)}</h1>
         <div class="meta">Publicado em ${fmtData(p.publicado_em)} · ${p.visualizacoes + 1} visualização(ões)</div>
-        ${p.capa ? `<img class="capa-artigo" src="${esc(urlArquivo(p.capa))}" alt="">` : ''}
+        ${topo}
         ${p.resumo ? `<p style="font-size:18px;color:var(--cinza)">${esc(p.resumo)}</p>` : ''}
-        <div class="conteudo">${mdParaHtml(p.conteudo)}</div>
+        <div class="conteudo">${mdParaHtml(inicial.resto)}</div>
         ${anexos}`;
 
       if (relacionadas.length) {
