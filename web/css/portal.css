@@ -38,7 +38,8 @@ img { max-width: 100%; }
   align-items: center;
   gap: 16px;
   min-height: 64px;
-  padding: 10px 0;
+  /* Só vertical: o padding lateral vem do .container. */
+  padding-top: 10px; padding-bottom: 10px;
 }
 .marca { display: flex; align-items: center; gap: 10px; color: var(--tinta); font-weight: 700; min-width: 0; }
 .marca .logo {
@@ -362,6 +363,29 @@ img { max-width: 100%; }
 
   .slides { height: clamp(320px, 75vw, 400px); }
   .slide-conteudo { padding: 0 20px 40px; }
+  /* Deixa a rolagem vertical com o navegador; o gesto lateral troca o slide. */
+  .slider { touch-action: pan-y; }
+  .slide-pontos button { width: 10px; height: 10px; }
+
+  /* Cards em lista compacta: miniatura à esquerda, título à direita. */
+  .grade { grid-template-columns: 1fr; gap: 12px; }
+  .card, .destaque-grande { flex-direction: row; grid-column: auto; }
+  .card:hover { transform: none; }
+  .card > a:first-child { flex: 0 0 116px; align-self: stretch; }
+  .card .capa, .card .capa-vazia,
+  .destaque-grande .capa, .destaque-grande .capa-vazia {
+    width: 100%; height: 100%; min-height: 116px; aspect-ratio: auto;
+  }
+  .card .capa-vazia { font-size: 20px; }
+  .card .corpo { padding: 12px 14px; gap: 6px; min-width: 0; }
+  .card .etiqueta { font-size: 10.5px; padding: 2px 8px; }
+  .card h3, .destaque-grande h3 {
+    font-size: 15.5px; line-height: 1.3;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .card .resumo { display: none; }
+  .card .meta { padding-top: 2px; font-size: 12px; }
+  .sk-card { min-height: 116px; }
 
   /* Chips e filtros com rolagem lateral em vez de empilhar um por linha. */
   .chips {

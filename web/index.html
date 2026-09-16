@@ -179,6 +179,32 @@
       document.getElementById('slide-prev').onclick = () => vaiPara(atual - 1, true);
       document.getElementById('slide-next').onclick = () => vaiPara(atual + 1, true);
       dots.forEach((d, i) => (d.onclick = () => vaiPara(i, true)));
+      // Celular: arrastar o dedo para os lados troca o slide; o toque pausa a troca automática.
+      let toque = null;
+      slider.ontouchstart = (ev) => {
+        const t = ev.touches[0];
+        toque = { x: t.clientX, y: t.clientY };
+        clearInterval(sliderTimer);
+      };
+      slider.ontouchend = (ev) => {
+        if (!toque) return;
+        const dx = ev.changedTouches[0].clientX - toque.x;
+        const dy = ev.changedTouches[0].clientY - toque.y;
+        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+          slider.dataset.arrastou = '1';
+          vaiPara(atual + (dx < 0 ? 1 : -1), true);
+        } else {
+          clearInterval(sliderTimer);
+          sliderTimer = setInterval(() => vaiPara(atual + 1), 6000);
+        }
+        toque = null;
+      };
+      // Um arrasto não deve abrir a notícia como se fosse um toque.
+      caixa.onclick = (ev) => {
+        if (slider.dataset.arrastou === '1') ev.preventDefault();
+        slider.dataset.arrastou = '';
+      };
+      slider.ontouchcancel = () => (toque = null);
       slider.onmouseenter = () => clearInterval(sliderTimer);
       slider.onmouseleave = () => {
         clearInterval(sliderTimer);
