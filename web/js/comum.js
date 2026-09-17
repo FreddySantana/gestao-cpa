@@ -31,14 +31,20 @@ export function classeIcone(mime = '', nome = '') {
 // Converte o texto das publicações (markdown simplificado) em HTML seguro.
 // Suporta: ## títulos, **negrito**, *itálico*, [link](url), ![descrição](url) para
 // imagens, listas com "- " e > citação.
-// Publicação dos dois portais com o nome certo da instituição: {{instituicao}} no texto
-// vira o nome do campus em que a notícia está sendo lida.
-export const NOME_INSTITUICAO = {
-  para: 'Faculdade Estácio do Pará',
-  belem: 'Centro Universitário Estácio Belém',
+// Publicação dos dois portais com o nome certo da instituição: as marcações abaixo viram
+// o nome do campus em que a notícia está sendo lida (com artigo: "a Faculdade" / "o Centro Universitário").
+const TERMOS_CAMPUS = {
+  para: { instituicao: 'Faculdade Estácio do Pará', a: 'a', da: 'da', na: 'na' },
+  belem: { instituicao: 'Centro Universitário Estácio Belém', a: 'o', da: 'do', na: 'no' },
 };
-export const aplicaTermosCampus = (texto, campus) =>
-  String(texto ?? '').replaceAll('{{instituicao}}', NOME_INSTITUICAO[campus] ?? NOME_INSTITUICAO.para);
+export function aplicaTermosCampus(texto, campus) {
+  const t = TERMOS_CAMPUS[campus] ?? TERMOS_CAMPUS.para;
+  return String(texto ?? '')
+    .replaceAll('{{a_instituicao}}', `${t.a} ${t.instituicao}`)
+    .replaceAll('{{da_instituicao}}', `${t.da} ${t.instituicao}`)
+    .replaceAll('{{na_instituicao}}', `${t.na} ${t.instituicao}`)
+    .replaceAll('{{instituicao}}', t.instituicao);
+}
 
 // Uma imagem na primeira linha do conteúdo toma o lugar da capa na página da notícia
 // (a capa continua sendo usada no slider e nos cards). Útil para capa sem texto + arte com texto.
