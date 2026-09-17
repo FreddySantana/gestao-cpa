@@ -1,6 +1,6 @@
 // Painel administrativo — versão Supabase (Auth + Postgres + Storage).
 import { sb, urlArquivo } from '/js/db.js';
-import { esc, fmtData, fmtTamanho, mdParaHtml, separaImagemInicial } from '/js/comum.js';
+import { esc, fmtData, fmtTamanho, mdParaHtml, separaImagemInicial, aplicaTermosCampus } from '/js/comum.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -310,7 +310,8 @@ function montaPrevia() {
   for (const f of $('pub-anexos').files) anexos.push(`📎 ${f.name} (novo)`);
 
   const resumo = $('pub-resumo').value.trim();
-  const inicial = separaImagemInicial($('pub-conteudo').value);
+  // Prévia de publicação dos dois portais mostra o texto como no portal do Pará.
+  const inicial = separaImagemInicial(aplicaTermosCampus($('pub-conteudo').value, $('pub-campus').value));
   if (inicial.url) capa = inicial.url;
   $('pub-previa').innerHTML = `
     <div class="previa-aviso">Prévia — é assim que a notícia vai aparecer no portal</div>

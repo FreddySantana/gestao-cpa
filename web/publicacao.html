@@ -90,8 +90,8 @@
   </footer>
 
   <script type="module">
-    import { sb, SEL_PUB, normalizaPublicacao, urlArquivo, pegaConfig, comCache, exigeDados, CAMPUS_VISIVEIS } from '/js/db.js';
-    import { aplicaConfig, cardPublicacao, mdParaHtml, separaImagemInicial, esc, fmtData, fmtTamanho, classeIcone } from '/js/comum.js';
+    import { sb, SEL_PUB, normalizaPublicacao, urlArquivo, pegaConfig, comCache, exigeDados, CAMPUS, CAMPUS_VISIVEIS } from '/js/db.js';
+    import { aplicaConfig, cardPublicacao, mdParaHtml, separaImagemInicial, aplicaTermosCampus, esc, fmtData, fmtTamanho, classeIcone } from '/js/comum.js';
 
     comCache('config', pegaConfig, aplicaConfig);
 
@@ -155,7 +155,7 @@
                .join('')}
            </div>`
         : '';
-      const inicial = separaImagemInicial(p.conteudo);
+      const inicial = separaImagemInicial(aplicaTermosCampus(p.conteudo, CAMPUS));
       const topo = inicial.url
         ? `<img class="capa-artigo" src="${esc(inicial.url)}" alt="${esc(inicial.alt)}">`
         : p.capa ? `<img class="capa-artigo" src="${esc(urlArquivo(p.capa))}" alt="">` : '';

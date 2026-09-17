@@ -31,6 +31,15 @@ export function classeIcone(mime = '', nome = '') {
 // Converte o texto das publicações (markdown simplificado) em HTML seguro.
 // Suporta: ## títulos, **negrito**, *itálico*, [link](url), ![descrição](url) para
 // imagens, listas com "- " e > citação.
+// Publicação dos dois portais com o nome certo da instituição: {{instituicao}} no texto
+// vira o nome do campus em que a notícia está sendo lida.
+export const NOME_INSTITUICAO = {
+  para: 'Faculdade Estácio do Pará',
+  belem: 'Centro Universitário Estácio Belém',
+};
+export const aplicaTermosCampus = (texto, campus) =>
+  String(texto ?? '').replaceAll('{{instituicao}}', NOME_INSTITUICAO[campus] ?? NOME_INSTITUICAO.para);
+
 // Uma imagem na primeira linha do conteúdo toma o lugar da capa na página da notícia
 // (a capa continua sendo usada no slider e nos cards). Útil para capa sem texto + arte com texto.
 export function separaImagemInicial(texto = '') {
