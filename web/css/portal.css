@@ -80,7 +80,12 @@ img { max-width: 100%; }
 .slide.ativo { opacity: 1; pointer-events: auto; }
 .slide::before {
   content: ''; position: absolute; inset: 0;
-  background: linear-gradient(to top, rgba(8, 15, 40, 0.86) 0%, rgba(8, 15, 40, 0.35) 55%, rgba(8, 15, 40, 0.15) 100%);
+  /* Escurece só a faixa de baixo, onde fica o texto; o miolo e o topo ficam claros. */
+  background: linear-gradient(to top,
+    rgba(8, 15, 40, 0.84) 0%,
+    rgba(8, 15, 40, 0.62) 18%,
+    rgba(8, 15, 40, 0.22) 42%,
+    rgba(8, 15, 40, 0) 62%);
 }
 .slide.sem-capa { background: linear-gradient(135deg, var(--azul-escuro) 0%, var(--azul) 70%, #3563e9 100%); }
 .slide.sem-capa::before { background: none; }
