@@ -37,6 +37,7 @@
       <button data-aba="categorias">🏷️ Categorias</button>
       <button data-aba="editais">📋 Editais</button>
       <button data-aba="peg">📊 Links PEG</button>
+      <button data-aba="acessos">📈 Acessos</button>
       <button data-aba="config">⚙️ Configurações</button>
       <div class="rodape-lateral">
         <span id="ola"></span>
@@ -378,6 +379,44 @@
       </section>
 
       <!-- Links PEG -->
+      <section class="aba" id="aba-acessos">
+        <div class="cabeca-aba">
+          <h2>Acessos</h2>
+          <div class="acoes filtros-acessos">
+            <select id="acessos-periodo" aria-label="Período">
+              <option value="7">Últimos 7 dias</option>
+              <option value="30" selected>Últimos 30 dias</option>
+              <option value="90">Últimos 90 dias</option>
+              <option value="365">Últimos 12 meses</option>
+            </select>
+            <select id="acessos-campus" aria-label="Portal">
+              <option value="">Todos os portais</option>
+              <option value="para">Estácio Pará</option>
+              <option value="belem">Estácio Belém</option>
+              <option value="peg">Links PEG</option>
+            </select>
+          </div>
+        </div>
+        <p class="dica">Medição anônima: sem cookies, sem IP e sem identificar ninguém. Seus acessos logado no painel não são contados. Visitantes = navegadores diferentes por dia.</p>
+        <div class="msg" id="acessos-msg"></div>
+        <div id="acessos-conteudo">
+          <div class="kpis" id="acessos-kpis"></div>
+          <div class="cartao">
+            <h3 class="titulo-grafico">Acessos por dia</h3>
+            <div class="grafico-dias" id="acessos-grafico"></div>
+            <details class="tabela-dados"><summary>Ver dados em tabela</summary><div id="acessos-tabela"></div></details>
+          </div>
+          <div class="grade-listas">
+            <div class="cartao"><h3 class="titulo-grafico">Publicações mais lidas</h3><div id="acessos-publicacoes"></div></div>
+            <div class="cartao"><h3 class="titulo-grafico">Páginas mais vistas</h3><div id="acessos-paginas"></div></div>
+            <div class="cartao"><h3 class="titulo-grafico">De onde vêm os visitantes</h3><div id="acessos-origens"></div></div>
+            <div class="cartao"><h3 class="titulo-grafico">Dispositivos</h3><div id="acessos-dispositivos"></div></div>
+            <div class="cartao"><h3 class="titulo-grafico">Editais mais vistos</h3><div id="acessos-editais"></div></div>
+            <div class="cartao"><h3 class="titulo-grafico">Portais</h3><div id="acessos-campi"></div></div>
+          </div>
+        </div>
+      </section>
+
       <section class="aba" id="aba-peg">
         <div class="cabeca-aba">
           <h2>Links do PEG</h2>
@@ -489,5 +528,6 @@
 
   <script type="module" src="/js/admin.js"></script>
   <script type="module" src="/js/editais-admin.js"></script>
+  <script type="module" src="/js/acessos-admin.js"></script>
 </body>
 </html>

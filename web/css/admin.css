@@ -210,3 +210,41 @@ input[type="file"] { font-size: 13.5px; }
 .inscricao-detalhe dl { display: grid; grid-template-columns: minmax(140px, max-content) 1fr; gap: 6px 16px; font-size: 13.5px; }
 .inscricao-detalhe dt { color: var(--cinza); }
 .inscricao-detalhe dd { margin: 0; white-space: pre-wrap; }
+
+/* ---------- Aba Acessos ---------- */
+#aba-acessos { --serie: #2563eb; --grade: #e8ebf2; --eixo: #c9cfdc; }
+.filtros-acessos { display: flex; gap: 8px; flex-wrap: wrap; }
+.filtros-acessos select { width: auto; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.kpi { background: var(--branco); border: 1px solid var(--borda); border-radius: var(--raio); padding: 16px 18px; display: flex; flex-direction: column; gap: 2px; }
+.kpi span { font-size: 13px; color: var(--cinza); font-weight: 600; }
+.kpi strong { font-size: 28px; line-height: 1.2; color: var(--tinta); }
+.kpi small { font-size: 12px; color: var(--cinza); }
+.titulo-grafico { font-size: 15px; margin-bottom: 12px; color: var(--tinta); }
+.grafico-dias { position: relative; }
+.grafico-dias svg { width: 100%; height: auto; display: block; }
+.grafico-dias .coluna { fill: var(--serie); }
+.grafico-dias .grade { stroke: var(--grade); stroke-width: 1; }
+.grafico-dias .eixo { stroke: var(--eixo); stroke-width: 1; }
+.grafico-dias .rotulo-eixo { font-size: 11px; fill: var(--cinza); font-family: inherit; }
+.grafico-dias .alvo { fill: transparent; cursor: default; }
+.grafico-dias .alvo.ativo { fill: rgba(37, 99, 235, 0.07); }
+.dica-grafico {
+  position: absolute; pointer-events: none; z-index: 3; white-space: nowrap;
+  background: var(--tinta); color: #fff; font-size: 12.5px; line-height: 1.45;
+  padding: 7px 10px; border-radius: 8px; box-shadow: var(--sombra);
+}
+.tabela-dados { margin-top: 12px; font-size: 13.5px; }
+.tabela-dados summary { cursor: pointer; color: var(--azul); font-weight: 600; }
+.tabela-dados .tabela-wrap { margin-top: 10px; max-height: 320px; overflow-y: auto; }
+.grade-listas { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 0 18px; }
+.barras { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.barras-rotulo { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; margin-bottom: 4px; }
+.barras-rotulo span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--tinta); }
+.barras-rotulo a { color: var(--tinta); }
+.barras-rotulo a:hover { color: var(--azul); }
+.barras-rotulo b { white-space: nowrap; color: var(--tinta); }
+.barras-rotulo small { color: var(--cinza); font-weight: 600; }
+.barras-trilho { height: 8px; background: var(--fundo); border-radius: 4px; }
+.barras-valor { height: 100%; background: var(--serie); border-radius: 4px; }
+.vazio-lista { color: var(--cinza); font-size: 13.5px; }

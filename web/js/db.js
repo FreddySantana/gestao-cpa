@@ -115,6 +115,40 @@ export function contaDownload(id) {
   sb.rpc('incrementa_download', { doc_id: id }).then(() => {});
 }
 
+// Medidor de acessos (aba "Acessos" do painel). Anônimo: sem cookie, IP ou identificador;
+// só uma marca local com a data da última visita, para contar visitantes por dia.
+// Não conta o painel nem quem está logado nele neste navegador.
+function registraAcesso() {
+  try {
+    if (navigator.webdriver || location.pathname.startsWith('/admin')) return;
+    if (Object.keys(localStorage).some((k) => k.startsWith('sb-') && k.endsWith('-auth-token'))) return;
+    const pagina = (location.pathname.replace(/\.html$/, '').replace(/\/index$/, '/') || '/').toLowerCase();
+    const campus = location.hostname.startsWith('peg.') || pagina.startsWith('/peg') ? 'peg' : CAMPUS;
+    const ref = Number(new URLSearchParams(location.search).get('id')) || null;
+    let origem = 'direto';
+    if (document.referrer) {
+      const host = new URL(document.referrer).hostname.replace(/^www\./, '');
+      origem = host === location.hostname ? 'interno' : host;
+    }
+    const celular = /Mobi|Android.+Mobile|iPhone/i.test(navigator.userAgent);
+    const tablet = !celular && (/iPad|Android|Tablet/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && innerWidth < 1100));
+    const hoje = new Date().toLocaleDateString('en-CA');
+    const novo = localStorage.getItem('cpa:ultima-visita') !== hoje;
+    if (novo) localStorage.setItem('cpa:ultima-visita', hoje);
+    sb.rpc('registra_acesso', {
+      p_campus: campus,
+      p_pagina: pagina,
+      p_ref: ref,
+      p_origem: origem,
+      p_dispositivo: celular ? 'celular' : tablet ? 'tablet' : 'computador',
+      p_novo: novo,
+    }).then(() => {});
+  } catch {
+    // Medição nunca pode atrapalhar a página.
+  }
+}
+setTimeout(registraAcesso, 800);
+
 // Delegação: qualquer link com data-conta-download soma o contador ao ser clicado.
 export function ativaContadorDownloads(raiz = document) {
   raiz.addEventListener('click', (e) => {
