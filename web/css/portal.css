@@ -362,7 +362,15 @@ img { max-width: 100%; }
   .banner-pesquisa a { margin-left: 0; width: 100%; text-align: center; }
 
   .slides { height: clamp(320px, 75vw, 400px); }
-  .slide-conteudo { padding: 0 20px 40px; }
+  .slide-conteudo { padding: 0 18px 38px; }
+  /* Texto do banner mais enxuto no celular: a imagem aparece mais. */
+  .slide-conteudo .etiqueta { font-size: 10.5px; padding: 2px 8px; margin-bottom: 8px; }
+  .slide-conteudo h2 {
+    font-size: 19px; line-height: 1.25;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .slide-conteudo .slide-resumo { font-size: 13.5px; margin-top: 6px; line-height: 1.4; }
+  .slide-conteudo .slide-meta { font-size: 12px; margin-top: 8px; }
   /* Deixa a rolagem vertical com o navegador; o gesto lateral troca o slide. */
   .slider { touch-action: pan-y; }
   .slide-pontos button { width: 10px; height: 10px; }
