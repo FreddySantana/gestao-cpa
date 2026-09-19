@@ -369,7 +369,7 @@ img { max-width: 100%; }
     font-size: 19px; line-height: 1.25;
     display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
   }
-  .slide-conteudo .slide-resumo { font-size: 13.5px; margin-top: 6px; line-height: 1.4; }
+  .slide-conteudo .slide-resumo { display: none; }
   .slide-conteudo .slide-meta { font-size: 12px; margin-top: 8px; }
   /* Deixa a rolagem vertical com o navegador; o gesto lateral troca o slide. */
   .slider { touch-action: pan-y; }
