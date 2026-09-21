@@ -244,12 +244,9 @@
         .map((c) => `<a class="chip" href="/noticias.html?categoria=${c.id}">${esc(c.nome)} (${c.total})</a>`)
         .join('');
 
-      if (documentos.length) {
-        document.getElementById('docs-recentes').innerHTML = documentos.map(itemDocumento).join('');
-      } else {
-        document.getElementById('docs-recentes').innerHTML = '';
-        document.getElementById('vazio-docs').style.display = '';
-      }
+      // Mostra e esconde o aviso nos dois sentidos: a primeira pintura vem do cache e pode estar desatualizada.
+      document.getElementById('docs-recentes').innerHTML = documentos.map(itemDocumento).join('');
+      document.getElementById('vazio-docs').style.display = documentos.length ? 'none' : '';
     }
 
     async function buscaHome() {
