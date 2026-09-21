@@ -122,6 +122,10 @@ img { max-width: 100%; }
   background: rgba(255, 255, 255, 0.4); transition: all 0.2s;
 }
 .slide-pontos button.ativo { background: #fff; width: 26px; }
+/* Telas muito largas: o banner para de crescer (até ~MacBook 14" ocupa a largura toda). */
+@media (min-width: 1601px) {
+  .slider { max-width: 1600px; margin: 20px auto 0; border-radius: 16px; }
+}
 @media (max-width: 700px) {
   .slide-conteudo { padding: 0 20px 44px; }
   .slide-seta { display: none; }
