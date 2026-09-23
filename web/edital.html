@@ -86,7 +86,7 @@
 
   <script type="module">
     import { sb, urlArquivo, pegaConfig, comCache, exigeDados, CAMPUS_VISIVEIS } from '/js/db.js';
-    import { aplicaConfig, esc, mdParaHtml } from '/js/comum.js';
+    import { aplicaConfig, esc, mdParaHtml, separaImagemInicial } from '/js/comum.js';
     import { situacaoEdital, ROTULO_SITUACAO, fmtPeriodo, fmtDataHora, campoHtml, lerFormulario, tipoEdital, seloTipo } from '/js/editais.js';
 
     comCache('config', pegaConfig, aplicaConfig);
@@ -120,14 +120,19 @@
       }
       document.title = `${e.titulo} · ${window.__CPA_PORTAL || 'Portal CPA'}`;
       const sit = situacaoEdital(e);
+      // Imagem na primeira linha da descrição toma o lugar da capa (a capa segue valendo no banner e nos cards).
+      const inicial = separaImagemInicial(e.descricao);
+      const topo = inicial.url
+        ? `<img class="capa-artigo" src="${esc(inicial.url)}" alt="${esc(inicial.alt)}">`
+        : e.capa ? `<img class="capa-artigo" src="${esc(urlArquivo(e.capa))}" alt="">` : '';
       artigo.innerHTML = `
         <div class="edital-area">${esc(e.area)}</div>
         <h1>${esc(e.titulo)}</h1>
         <div class="meta">${e.numero ? `${esc(e.numero)} · ` : ''}Inscrições: ${esc(fmtPeriodo(e))}
           <span class="situacao ${sit}">${ROTULO_SITUACAO[sit]}</span> ${seloTipo(e)}</div>
-        ${e.capa ? `<img class="capa-artigo" src="${esc(urlArquivo(e.capa))}" alt="">` : ''}
+        ${topo}
         ${e.resumo ? `<p style="font-size:18px;color:var(--cinza)">${esc(e.resumo)}</p>` : ''}
-        <div class="conteudo">${mdParaHtml(e.descricao)}</div>
+        <div class="conteudo">${mdParaHtml(inicial.resto)}</div>
         ${e.arquivo ? `<p style="margin-top:20px"><a class="btn-edital" href="${esc(urlArquivo(e.arquivo, e.arquivo_nome || 'edital.pdf'))}" target="_blank" rel="noopener">📄 Baixar o edital (PDF)</a></p>` : ''}
         ${resultado?.texto ? `<section class="resultado-edital"><h2>Resultado</h2><div class="conteudo">${mdParaHtml(resultado.texto)}</div></section>` : ''}`;
       renderInscricao(e, sit);
