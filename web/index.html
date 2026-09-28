@@ -146,7 +146,7 @@
             : '';
           return `
             <a class="slide${p.capa ? '' : ' sem-capa'}${i === 0 ? ' ativo' : ''}" href="/publicacao?id=${p.id}">
-              <div class="slide-img"${p.capa ? ` style="--capa:url('${url}')"` : ''}>
+              <div class="slide-img">
                 ${p.capa ? `<img class="slide-arte" src="${url}" alt="" loading="${i === 0 ? 'eager' : 'lazy'}">` : ''}
               </div>
               <div class="slide-barra">
