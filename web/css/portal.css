@@ -70,7 +70,7 @@ img { max-width: 100%; }
 .slider {
   --hero: min(1120px, calc(100vw - 40px));
   --hero-img: calc(var(--hero) / 2.75);
-  --hero-barra: 88px;
+  --hero-barra: 114px;
   position: relative;
   padding: 12px 0 0;
 }
@@ -99,7 +99,7 @@ img { max-width: 100%; }
   background: #0a1433; border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 .slide-conteudo {
-  width: 100%; padding: 0 26px; color: #fff;
+  width: 100%; padding: 20px 26px 22px; color: #fff;
   display: flex; align-items: center; justify-content: space-between; gap: 24px;
 }
 .slide-texto { min-width: 0; }
@@ -378,10 +378,10 @@ img { max-width: 100%; }
   .banner-pesquisa a { margin-left: 0; width: 100%; text-align: center; }
 
   /* Cartão um pouco mais estreito e faixa de texto mais baixa. */
-  .slider { --hero: calc(100vw - 24px); --hero-barra: 102px; padding: 10px 0 0; }
+  .slider { --hero: calc(100vw - 24px); --hero-barra: 118px; padding: 10px 0 0; }
   .slides { border-radius: 14px; }
   /* No celular a data vai para baixo do título, para o texto respirar. */
-  .slide-conteudo { padding: 0 14px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; }
+  .slide-conteudo { padding: 16px 14px 18px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px; }
   .slide-conteudo .etiqueta { font-size: 10.5px; letter-spacing: 0.7px; margin-bottom: 6px; }
   .slide-conteudo h2 { font-size: 16.5px; line-height: 1.3; -webkit-line-clamp: 2; }
   .slide-conteudo .slide-meta { font-size: 11.5px; margin-top: 5px; }
