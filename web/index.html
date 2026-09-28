@@ -140,13 +140,15 @@
 
       caixa.innerHTML = slides
         .map((p, i) => {
-          const capa = p.capa ? ` style="background-image:url('${esc(urlArquivo(p.capa))}')"` : '';
+          const url = p.capa ? esc(urlArquivo(p.capa)) : '';
           const cat = p.categoria_nome
             ? `<span class="etiqueta" style="background:${esc(p.categoria_cor || '#1d4ed8')}">${esc(p.categoria_nome)}</span><br>`
             : '';
           return `
             <a class="slide${p.capa ? '' : ' sem-capa'}${i === 0 ? ' ativo' : ''}" href="/publicacao?id=${p.id}">
-              <div class="slide-img"${capa}></div>
+              <div class="slide-img"${p.capa ? ` style="--capa:url('${url}')"` : ''}>
+                ${p.capa ? `<img class="slide-arte" src="${url}" alt="" loading="${i === 0 ? 'eager' : 'lazy'}">` : ''}
+              </div>
               <div class="slide-barra">
                 <div class="slide-conteudo">
                   ${cat}

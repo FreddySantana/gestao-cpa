@@ -77,7 +77,15 @@ img { max-width: 100%; }
   opacity: 0; transition: opacity 0.6s ease; pointer-events: none;
   display: flex; flex-direction: column;
 }
-.slide-img { flex: 1; min-height: 0; background-size: cover; background-position: center; }
+/* A arte aparece inteira; as sobras das laterais (ou de cima e de baixo) ficam com
+   a própria imagem desfocada por trás, em vez de cortar a arte. */
+.slide-img { flex: 1; min-height: 0; position: relative; overflow: hidden; background: #0b1430; }
+.slide-img::before {
+  content: ''; position: absolute; inset: -30px;
+  background-image: var(--capa); background-size: cover; background-position: center;
+  filter: blur(22px) brightness(0.55);
+}
+.slide-arte { position: relative; display: block; width: 100%; height: 100%; object-fit: contain; }
 .slide.ativo { opacity: 1; pointer-events: auto; }
 .slide.sem-capa { background: linear-gradient(135deg, var(--azul-escuro) 0%, var(--azul) 70%, #3563e9 100%); }
 /* Texto numa faixa escura abaixo da imagem, para não cobrir a arte. */
@@ -363,8 +371,6 @@ img { max-width: 100%; }
 
   /* Imagem inteira (arte larga ≈ 1/3 da largura) mais a faixa de texto. */
   .slides { height: calc(38vw + 165px); }
-  /* No celular a arte aparece inteira, sem cortar as laterais. */
-  .slide-img { background-size: contain; background-repeat: no-repeat; background-color: #0b1430; }
   .slide-conteudo { padding: 12px 18px 16px; }
   /* Texto do banner mais enxuto no celular: a imagem aparece mais. */
   .slide-conteudo .etiqueta { font-size: 10.5px; padding: 2px 8px; margin-bottom: 8px; }
