@@ -145,12 +145,15 @@
             ? `<span class="etiqueta" style="background:${esc(p.categoria_cor || '#1d4ed8')}">${esc(p.categoria_nome)}</span><br>`
             : '';
           return `
-            <a class="slide${p.capa ? '' : ' sem-capa'}${i === 0 ? ' ativo' : ''}"${capa} href="/publicacao?id=${p.id}">
-              <div class="slide-conteudo">
-                ${cat}
-                <h2>${esc(p.titulo)}</h2>
-                <p class="slide-resumo">${esc(p.resumo)}</p>
-                <div class="slide-meta">${fmtData(p.publicado_em)}</div>
+            <a class="slide${p.capa ? '' : ' sem-capa'}${i === 0 ? ' ativo' : ''}" href="/publicacao?id=${p.id}">
+              <div class="slide-img"${capa}></div>
+              <div class="slide-barra">
+                <div class="slide-conteudo">
+                  ${cat}
+                  <h2>${esc(p.titulo)}</h2>
+                  <p class="slide-resumo">${esc(p.resumo)}</p>
+                  <div class="slide-meta">${fmtData(p.publicado_em)}</div>
+                </div>
               </div>
             </a>`;
         })
