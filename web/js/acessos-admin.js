@@ -17,6 +17,24 @@ const NOME_CAMPUS = { para: 'Estácio Pará', belem: 'Estácio Belém', peg: 'Li
 const NOME_DISPOSITIVO = { celular: 'Celular', tablet: 'Tablet', computador: 'Computador', desconhecido: 'Não identificado' };
 const NOME_ORIGEM = { direto: 'Acesso direto (link salvo, digitado ou app)' };
 
+// A Cloudflare manda a sigla do estado (PA, SP) e o código do país (BR, PT).
+const UF = {
+  AC: 'Acre', AL: 'Alagoas', AP: 'Amapá', AM: 'Amazonas', BA: 'Bahia', CE: 'Ceará', DF: 'Distrito Federal',
+  ES: 'Espírito Santo', GO: 'Goiás', MA: 'Maranhão', MT: 'Mato Grosso', MS: 'Mato Grosso do Sul',
+  MG: 'Minas Gerais', PA: 'Pará', PB: 'Paraíba', PR: 'Paraná', PE: 'Pernambuco', PI: 'Piauí',
+  RJ: 'Rio de Janeiro', RN: 'Rio Grande do Norte', RS: 'Rio Grande do Sul', RO: 'Rondônia', RR: 'Roraima',
+  SC: 'Santa Catarina', SP: 'São Paulo', SE: 'Sergipe', TO: 'Tocantins',
+};
+const nomeEstado = (uf) => (UF[uf] ? `${UF[uf]} <small>(${uf})</small>` : esc(uf));
+const nomePais = (codigo) => {
+  try {
+    const nome = new Intl.DisplayNames(['pt-BR'], { type: 'region' }).of(codigo);
+    return nome && nome !== codigo ? `${esc(nome)} <small>(${esc(codigo)})</small>` : esc(codigo);
+  } catch {
+    return esc(codigo);
+  }
+};
+
 const fmtNum = (n) => Number(n).toLocaleString('pt-BR');
 const diaLocal = (d) => d.toLocaleDateString('en-CA', { timeZone: 'America/Belem' });
 const fmtDia = (iso, opcoes = { day: '2-digit', month: '2-digit' }) =>
@@ -86,6 +104,14 @@ function render(r, desde, dias) {
     n: e.n,
   })), 'Nenhum edital visto no período.');
   listaBarras('acessos-campi', r.campi.map((c) => ({ rotulo: NOME_CAMPUS[c.campus] ?? esc(c.campus), n: c.n })), undefined, true);
+  listaBarras('acessos-estados', (r.estados ?? []).map((e) => ({ rotulo: nomeEstado(e.estado), n: e.n })),
+    'Sem localização registrada no período.', true);
+  listaBarras('acessos-cidades', (r.cidades ?? []).map((c) => ({
+    rotulo: `${esc(c.cidade)}${c.estado ? ` <small>(${esc(c.estado)})</small>` : ''}`,
+    n: c.n,
+  })), 'Sem cidades registradas no período.');
+  listaBarras('acessos-paises', (r.paises ?? []).map((p) => ({ rotulo: nomePais(p.pais), n: p.n })),
+    'Sem países registrados no período.', true);
 }
 
 // Lista com barra horizontal proporcional ao maior valor (uma cor só: é magnitude, não identidade).

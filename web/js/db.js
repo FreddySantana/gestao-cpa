@@ -135,14 +135,20 @@ function registraAcesso() {
     const hoje = new Date().toLocaleDateString('en-CA');
     const novo = localStorage.getItem('cpa:ultima-visita') !== hoje;
     if (novo) localStorage.setItem('cpa:ultima-visita', hoje);
-    sb.rpc('registra_acesso', {
-      p_campus: campus,
-      p_pagina: pagina,
-      p_ref: ref,
-      p_origem: origem,
-      p_dispositivo: celular ? 'celular' : tablet ? 'tablet' : 'computador',
-      p_novo: novo,
-    }).then(() => {});
+    // Passa pelo /api/acesso do próprio site: é lá que a localização (país, estado, cidade) é lida.
+    fetch('/api/acesso', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        campus,
+        pagina,
+        ref,
+        origem,
+        dispositivo: celular ? 'celular' : tablet ? 'tablet' : 'computador',
+        novo,
+      }),
+      keepalive: true,
+    }).catch(() => {});
   } catch {
     // Medição nunca pode atrapalhar a página.
   }

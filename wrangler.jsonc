@@ -4,6 +4,9 @@
   // Deploy: `npx wrangler deploy` (é o que a Cloudflare roda a cada push).
   "name": "gestao-cpa",
   "compatibility_date": "2026-07-30",
+  // Só /api/acesso passa pelo Worker (registra a visita com a localização da Cloudflare);
+  // o resto é servido direto da pasta web/.
+  "main": "worker/index.js",
   "assets": {
     "directory": "./web"
   }
