@@ -339,6 +339,65 @@ $('pub-ver-previa').addEventListener('click', () => {
   }
 });
 
+/* ---------- Imagens dentro do texto da publicação ---------- */
+
+// Sobe a imagem e escreve o ![descrição](endereço) na posição do cursor.
+async function insereImagens(arquivos) {
+  const imagens = [...arquivos].filter((f) => f.type.startsWith('image/'));
+  if (!imagens.length) return;
+  const campo = $('pub-conteudo');
+  const aviso = $('pub-imagem-msg');
+  aviso.className = 'msg';
+  aviso.textContent = imagens.length > 1 ? `Enviando ${imagens.length} imagens…` : 'Enviando imagem…';
+  try {
+    const marcacoes = [];
+    for (const arquivo of imagens) {
+      if (arquivo.size > 8 * 1024 * 1024) throw new Error(`"${arquivo.name}" tem mais de 8 MB. Reduza a imagem antes de enviar.`);
+      const caminho = await envia('publicacoes', arquivo);
+      const descricao = arquivo.name.replace(/\.[a-z0-9]+$/i, '').replace(/[_-]+/g, ' ').trim();
+      marcacoes.push(`![${descricao}](${urlArquivo(caminho)})`);
+    }
+    const texto = campo.value;
+    const corte = campo.selectionStart ?? texto.length;
+    const antes = texto.slice(0, corte).replace(/\s+$/, '');
+    const depois = texto.slice(corte).replace(/^\s+/, '');
+    const bloco = marcacoes.join('\n\n');
+    campo.value = `${antes ? `${antes}\n\n` : ''}${bloco}${depois ? `\n\n${depois}` : '\n'}`;
+    const fim = (antes ? antes.length + 2 : 0) + bloco.length;
+    campo.focus();
+    campo.setSelectionRange(fim, fim);
+    msg('pub-imagem-msg', imagens.length > 1 ? `${imagens.length} imagens inseridas no texto.` : 'Imagem inserida no texto.');
+  } catch (err) {
+    msg('pub-imagem-msg', err.message, 'erro');
+  }
+}
+
+$('pub-add-imagem').addEventListener('click', () => $('pub-imagem').click());
+$('pub-imagem').addEventListener('change', async (e) => {
+  await insereImagens(e.target.files);
+  e.target.value = '';
+});
+$('pub-conteudo').addEventListener('dragover', (e) => {
+  if (e.dataTransfer?.types?.includes('Files')) {
+    e.preventDefault();
+    $('pub-conteudo').classList.add('arrastando');
+  }
+});
+$('pub-conteudo').addEventListener('dragleave', () => $('pub-conteudo').classList.remove('arrastando'));
+$('pub-conteudo').addEventListener('drop', (e) => {
+  if (!e.dataTransfer?.files?.length) return;
+  e.preventDefault();
+  $('pub-conteudo').classList.remove('arrastando');
+  insereImagens(e.dataTransfer.files);
+});
+$('pub-conteudo').addEventListener('paste', (e) => {
+  const arquivos = [...(e.clipboardData?.files ?? [])];
+  if (arquivos.some((f) => f.type.startsWith('image/'))) {
+    e.preventDefault();
+    insereImagens(arquivos);
+  }
+});
+
 $('nova-publicacao').addEventListener('click', () => abreModalPublicacao());
 $('pub-fechar').addEventListener('click', () => $('modal-pub').classList.remove('visivel'));
 $('modal-pub').addEventListener('click', (e) => {

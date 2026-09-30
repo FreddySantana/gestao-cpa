@@ -248,3 +248,9 @@ input[type="file"] { font-size: 13.5px; }
 .barras-trilho { height: 8px; background: var(--fundo); border-radius: 4px; }
 .barras-valor { height: 100%; background: var(--serie); border-radius: 4px; }
 .vazio-lista { color: var(--cinza); font-size: 13.5px; }
+
+/* Inserir imagem no texto da publicação */
+.acoes-editor { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: -6px 0 10px; }
+.acoes-editor .dica { margin: 0; }
+.acoes-editor .msg { margin: 0; }
+#pub-conteudo.arrastando { border-color: var(--azul); box-shadow: 0 0 0 3px var(--azul-claro); }
