@@ -35,6 +35,8 @@ export const SEL_PUB =
 // URL pública de um arquivo no bucket "cpa". Com nomeDownload, o navegador baixa com esse nome.
 export function urlArquivo(caminho, nomeDownload) {
   if (!caminho) return '';
+  // Arquivo publicado junto com o site (começa com "/") ou endereço completo: usa como está.
+  if (caminho.startsWith('/') || /^https?:\/\//i.test(caminho)) return caminho;
   const base = `${SUPABASE_URL}/storage/v1/object/public/cpa/${caminho}`;
   return nomeDownload ? `${base}?download=${encodeURIComponent(nomeDownload)}` : base;
 }
