@@ -9,9 +9,55 @@ const ANON =
 
 const texto = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : null) || null;
 
+// Repasse do Supabase pelo próprio domínio (/api/sb/...). Serve para o portal continuar
+// funcionando onde o domínio do Supabase está bloqueado (filtro de rede, bloqueador no
+// navegador). As regras de acesso continuam sendo do Supabase: aqui nada é liberado,
+// só encaminhado.
+const ROTAS_SB = ['/rest/v1/', '/auth/v1/', '/storage/v1/'];
+const CABECALHOS_ENVIO = [
+  'apikey', 'authorization', 'content-type', 'accept', 'accept-language', 'accept-profile',
+  'content-profile', 'prefer', 'range', 'x-client-info', 'x-supabase-api-version', 'x-upsert',
+];
+const CABECALHOS_RESPOSTA = [
+  'content-type', 'content-length', 'content-range', 'content-disposition', 'etag',
+  'cache-control', 'range-unit', 'x-supabase-api-version',
+];
+
+async function repassaSupabase(request, url) {
+  const caminho = url.pathname.replace(/^\/api\/sb/, '') || '/';
+  if (!ROTAS_SB.some((r) => caminho.startsWith(r))) return new Response('Rota não permitida', { status: 403 });
+
+  const destino = new URL(SUPABASE + caminho + url.search);
+  const cabecalhos = new Headers();
+  for (const nome of CABECALHOS_ENVIO) {
+    const valor = request.headers.get(nome);
+    if (valor) cabecalhos.set(nome, valor);
+  }
+  if (!cabecalhos.has('apikey')) cabecalhos.set('apikey', ANON);
+
+  const resposta = await fetch(destino, {
+    method: request.method,
+    headers: cabecalhos,
+    body: ['GET', 'HEAD'].includes(request.method) ? undefined : request.body,
+    redirect: 'follow',
+  });
+  const saida = new Headers();
+  for (const nome of CABECALHOS_RESPOSTA) {
+    const valor = resposta.headers.get(nome);
+    if (valor) saida.set(nome, valor);
+  }
+  return new Response(resposta.body, { status: resposta.status, headers: saida });
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if (url.pathname.startsWith('/api/sb/')) {
+      // Só as próprias páginas do portal usam o repasse.
+      const origem = request.headers.get('Origin');
+      if (origem && new URL(origem).host !== url.host) return new Response(null, { status: 403 });
+      return repassaSupabase(request, url);
+    }
     if (url.pathname !== '/api/acesso') return new Response('Não encontrado', { status: 404 });
     if (request.method !== 'POST') return new Response('Método não permitido', { status: 405 });
     // Só aceita chamadas das próprias páginas.

@@ -1,9 +1,9 @@
 // Cliente Supabase + acesso a dados compartilhado entre as páginas.
 // supabase-js hospedado localmente (web/js/vendor) para evitar a viagem extra ao CDN.
 import { createClient } from './vendor/supabase-bundle.mjs';
-import { SUPABASE_URL, SUPABASE_ANON_KEY, CAMPUS_POR_DOMINIO, CAMPUS_PADRAO } from './config.js';
+import { SUPABASE_BASE, SUPABASE_ANON_KEY, CAMPUS_POR_DOMINIO, CAMPUS_PADRAO } from './config.js';
 
-export const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const sb = createClient(SUPABASE_BASE, SUPABASE_ANON_KEY);
 
 // Qual portal este acesso representa: o domínio decide; ?campus=belem força
 // (fica na aba, via sessionStorage — útil para testar antes dos domínios).
@@ -37,7 +37,7 @@ export function urlArquivo(caminho, nomeDownload) {
   if (!caminho) return '';
   // Arquivo publicado junto com o site (começa com "/") ou endereço completo: usa como está.
   if (caminho.startsWith('/') || /^https?:\/\//i.test(caminho)) return caminho;
-  const base = `${SUPABASE_URL}/storage/v1/object/public/cpa/${caminho}`;
+  const base = `${SUPABASE_BASE}/storage/v1/object/public/cpa/${caminho}`;
   return nomeDownload ? `${base}?download=${encodeURIComponent(nomeDownload)}` : base;
 }
 

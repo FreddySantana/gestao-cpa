@@ -10,4 +10,10 @@ export const CAMPUS_POR_DOMINIO = {
 };
 export const CAMPUS_PADRAO = 'para';
 export const SUPABASE_URL = 'https://nzsjbakghksbuvammgtp.supabase.co';
+
+// O site fala com o banco pelo próprio domínio (/api/sb), repassado pelo Worker da
+// Cloudflare. Assim, filtros de rede e bloqueadores que barram o domínio do Supabase
+// não derrubam o portal. No desenvolvimento local (sem Worker) vai direto.
+const LOCAL = ['localhost', '127.0.0.1'].includes(location.hostname);
+export const SUPABASE_BASE = LOCAL ? SUPABASE_URL : `${location.origin}/api/sb`;
 export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56c2piYWtnaGtzYnV2YW1tZ3RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNDYwNjEsImV4cCI6MjEwMDkyMjA2MX0.f2lJs7JxrXwsM5bxhW8d48f8KrMiq8v5eNAQanshjzk';
